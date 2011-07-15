@@ -6,7 +6,7 @@
 
 using namespace std;
 
-const int sqr_size = 5;
+const int sqr_size = 2;
 
 void mpf_complex_sqrt(mpf_t rout, mpf_t iout, mpf_t rin, mpf_t iin) {
 	// sqrt of a complex number
@@ -151,21 +151,20 @@ int main( int ac, char ** av) {
 			mpf_set_ui(real_p, 0);
 			mpf_set_ui(imag_p, 0);
 test_place:
-			// diamond method
+			/* diamond method
 			mpf_abs(real_t, real_p);
 			mpf_abs(imag_t, imag_p);
 			mpf_add(real_t, real_t, imag_t);
 			if (mpf_cmp_ui(real_t, sqr_size) > 0)
-				too_big = true;
+				too_big = true; */
 
-			/* circle method
+			// circle method
 			mpf_mul(real_t, real_p, real_p);
 			mpf_mul(imag_t, imag_p, imag_p);
 			mpf_add(real_t, real_t, imag_t);
 			mpf_sqrt(real_t, real_t);
 			if (mpf_cmp_ui(real_t, sqr_size) > 0)
 					too_big = true;
-					*/
 
 			i++;
 

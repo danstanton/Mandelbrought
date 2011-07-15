@@ -13,7 +13,7 @@ typedef unsigned int uint;
 
 int main( int ac, char ** av) {
 	if ( ac < 3 ) {
-		printf("Usage: %s in_file color_file\n", av[0]);
+		printf("Usage: %s dat_file color_file\n", av[0]);
 		return 1;
 	}
 
