@@ -1,0 +1,11 @@
+Mandelbrought relies on:
+  libgmp (gmplib.org)
+  libpngwriter (pngwriter.sourceforge.net) 
+
+To build Mandelbrought, just use 'make'.
+
+This creates four executables:
+  MBDat (produce a data file corresponding to a view area and resolution)
+  MBFind (find the numbers for a zoom region based on a previous image)
+  MBImg (apply a coloring to a data file to produce a PNG image)
+  MBSeries (produce multiple data files based on a zoom specification)
