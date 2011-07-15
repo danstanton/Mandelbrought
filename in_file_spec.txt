@@ -1,0 +1,20 @@
+<img_width>x<img_height>
+<center_x>
+<center_y>
+<zoom>
+<test_depth>
+
+--------------------------------
+In the format above:
+  <img_width> is an integer
+    -- the horizontal resolution for the output image (integer)
+  <img_height> is an integer
+    -- the vertical resolution for the output image (integer)
+  <center_x> is a scientific notation decimal number
+    -- the value of the center of the image on the x-axis 
+  <center_y> is a scientific notation decimal number
+    -- the value of the center of the image on the y-axis 
+  <zoom> is a scientific notation decimal number
+    -- the number of pixels that correspond to a distance of 1.0
+  <test_depth> is an integer
+    -- the number of iterations to apply z = z^(2) + c and test if z escaped
