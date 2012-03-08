@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-#include <iostream>
 #include <gmp.h>
 #include <png.h>
 
@@ -12,18 +11,16 @@ using namespace std;
 
 typedef unsigned int uint;
 
-/* flerr stands for "flag error".
- * This means that if an error condition is met, a flag will
- * be set so that code above can handle the error. At the same time, it
- * prints a little error message*/
-bool flerr( bool error, string task) {
+/* This is a simple wrapper around an error condition. It will print
+ * a very simple error message. */
+bool flag_error( bool error, string task) {
 	if (error) 
 		printf("Could not %s.\n", task.c_str());
 	return error;
 };
 
-bool fleof( int error, string task) {
-	return flerr(error == EOF, task);
+bool flag_eof( int error, string task) {
+	return flag_error(error == EOF, task);
 };
 
 int main( int ac, char ** av) {
@@ -41,7 +38,7 @@ int main( int ac, char ** av) {
 	filename.append(av[2]);
 	filename.append(".png");
 
-	cout<<filename<<endl;
+	printf("%s\n",filename.c_str());
 
 	FILE *in_file=fopen(av[1], "r"),
 		 *color_file=fopen(av[2], "r"),
@@ -54,18 +51,18 @@ int main( int ac, char ** av) {
 	png_bytep *img_row = NULL;
 
 	bool err_jump = false;
-	err_jump |= flerr(!in_file, "open data file");
-	err_jump |= flerr(!color_file, "open color spec");
-	err_jump |= flerr(!out_file, "ready image output file");
+	err_jump |= flag_error(!in_file, "open data file");
+	err_jump |= flag_error(!color_file, "open color spec");
+	err_jump |= flag_error(!out_file, "ready image output file");
 	if(err_jump) goto cleanup;
 
 	png_ptr = png_create_write_struct(
 			PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
-	if(flerr(!png_ptr, "create PNG memory structure")) 
+	if(flag_error(!png_ptr, "create PNG memory structure")) 
 		goto cleanup;
 	info_ptr = png_create_info_struct(png_ptr);
 
-	if(flerr(!info_ptr, "create PNG info structure")) 
+	if(flag_error(!info_ptr, "create PNG info structure")) 
 		goto cleanup;
 
 
@@ -73,29 +70,29 @@ int main( int ac, char ** av) {
 	// img_width
 	// img_height
 	uint img_width, img_height;
-	if(fleof(fscanf(in_file, "%ux%u", &img_width, &img_height), "read resolution"))
+	if(flag_eof(fscanf(in_file, "%ux%u", &img_width, &img_height), "read resolution"))
 		goto cleanup;
 
 	double rfq, gfq, bfq;
 	int offset;
-	if(fleof(fscanf(color_file, "%lf", &rfq), "read red color spec"))
+	if(flag_eof(fscanf(color_file, "%lf", &rfq), "read red color spec"))
 		goto cleanup;
-	if(fleof(fscanf(color_file, "%lf", &gfq), "read green color spec"))
+	if(flag_eof(fscanf(color_file, "%lf", &gfq), "read green color spec"))
 		goto cleanup;
-	if(fleof(fscanf(color_file, "%lf", &bfq), "read blue color spec"))
+	if(flag_eof(fscanf(color_file, "%lf", &bfq), "read blue color spec"))
 		goto cleanup;
-	if(fleof(fscanf(color_file, "%d", &offset), "read offset"))
+	if(flag_eof(fscanf(color_file, "%d", &offset), "read offset"))
 		goto cleanup;
 
 	fclose(color_file);
 	color_file = NULL;
 
 	// Initialize the PNG structure for writing
-	if(flerr(setjmp(png_jmpbuf(png_ptr)), "initialize PNG I/O")) 
+	if(flag_error(setjmp(png_jmpbuf(png_ptr)), "initialize PNG I/O")) 
 		goto cleanup;
 	png_init_io(png_ptr, out_file);
 
-	if(flerr(setjmp(png_jmpbuf(png_ptr)), "write PNG header"))
+	if(flag_error(setjmp(png_jmpbuf(png_ptr)), "write PNG header"))
 		goto cleanup;
 	png_set_IHDR(png_ptr, info_ptr, 
 			img_width, img_height, 
@@ -128,7 +125,7 @@ int main( int ac, char ** av) {
 	for(uint y=0; y < img_height; y++) {
 		for(uint x=0; x < img_width; x++) {
 
-			if(fleof(fscanf(in_file, "%u", &current), "read point value"))
+			if(flag_eof(fscanf(in_file, "%u", &current), "read point value"))
 				goto cleanup;
 
 			pixel = ((img_row[y])+(x*3));
@@ -138,11 +135,11 @@ int main( int ac, char ** av) {
 		}
 	}
 
-	if(flerr(setjmp(png_jmpbuf(png_ptr)), "write PNG data"))
+	if(flag_error(setjmp(png_jmpbuf(png_ptr)), "write PNG data"))
 		goto cleanup;
 	png_write_image(png_ptr, img_row);
 
-	if(flerr(setjmp(png_jmpbuf(png_ptr)), "close PNG data"))
+	if(flag_error(setjmp(png_jmpbuf(png_ptr)), "close PNG data"))
 		goto cleanup;
 	png_write_end(png_ptr, info_ptr);
 
