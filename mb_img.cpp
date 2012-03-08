@@ -24,8 +24,8 @@ bool flag_eof( int error, string task) {
 };
 
 int main( int ac, char ** av) {
-	if ( ac < 3 ) {
-		printf("Usage: %s dat_file color_file\n", av[0]);
+	if ( ac < 2 ) {
+		printf("Usage: %s dat_file \n", av[0]);
 		return 0;
 	}
 
@@ -34,25 +34,23 @@ int main( int ac, char ** av) {
 	for(uint i = 0; i < strlen(av[1])-4; i++)
 		filename.push_back(av[1][i]);
 
-	filename.push_back('-');
-	filename.append(av[2]);
+	/* filename.push_back('-');
+	filename.append(av[2]); */
 	filename.append(".png");
 
 	printf("%s\n",filename.c_str());
 
 	FILE *in_file=fopen(av[1], "r"),
-		 *color_file=fopen(av[2], "r"),
+		 // *color_file=fopen(av[2], "r"),
 		 *out_file=fopen(filename.c_str(), "wb");
 
 	png_structp png_ptr = NULL;
 	png_infop info_ptr = NULL;
-	// png_colorp palette = NULL;
-
 	png_bytep *img_row = NULL;
 
 	bool err_jump = false;
 	err_jump |= flag_error(!in_file, "open data file");
-	err_jump |= flag_error(!color_file, "open color spec");
+	// err_jump |= flag_error(!color_file, "open color spec");
 	err_jump |= flag_error(!out_file, "ready image output file");
 	if(err_jump) goto cleanup;
 
@@ -65,14 +63,11 @@ int main( int ac, char ** av) {
 	if(flag_error(!info_ptr, "create PNG info structure")) 
 		goto cleanup;
 
-
-	// things to get from the data file:
-	// img_width
-	// img_height
-	uint img_width, img_height;
+	uint img_width, img_height; // <-- Things to get from the data file
 	if(flag_eof(fscanf(in_file, "%ux%u", &img_width, &img_height), "read resolution"))
 		goto cleanup;
 
+	/*
 	double rfq, gfq, bfq;
 	int offset;
 	if(flag_eof(fscanf(color_file, "%lf", &rfq), "read red color spec"))
@@ -83,9 +78,10 @@ int main( int ac, char ** av) {
 		goto cleanup;
 	if(flag_eof(fscanf(color_file, "%d", &offset), "read offset"))
 		goto cleanup;
+		*/
 
-	fclose(color_file);
-	color_file = NULL;
+	// fclose(color_file);
+	// color_file = NULL;
 
 	// Initialize the PNG structure for writing
 	if(flag_error(setjmp(png_jmpbuf(png_ptr)), "initialize PNG I/O")) 
@@ -129,8 +125,8 @@ int main( int ac, char ** av) {
 				goto cleanup;
 
 			pixel = ((img_row[y])+(x*3));
-			pixel[0] = current%256;
-			pixel[1] = current%256;
+			pixel[0] = (current+100)%256;
+			pixel[1] = (current+80)%256;
 			pixel[2] = current%256;
 		}
 	}
@@ -146,7 +142,7 @@ int main( int ac, char ** av) {
 cleanup:
 	if(in_file) fclose(in_file);
 	if(out_file) fclose(out_file);
-	if(color_file) fclose(color_file);
+	// if(color_file) fclose(color_file);
 	if(png_ptr) png_destroy_write_struct(&png_ptr, &info_ptr);
 	if(img_row) {
 		for(uint i = 0; i < img_height; i++) {
