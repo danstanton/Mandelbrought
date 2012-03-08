@@ -77,7 +77,7 @@ int main( int ac, char ** av) {
 	mpf_init(zoom);
 	mpf_inp_str(zoom, in_file, 10);
 
-	// iter
+	// iteration
 	int *iter = new int();
 	fscanf(in_file, "%u", iter);
 
@@ -136,6 +136,8 @@ int main( int ac, char ** av) {
 			mpf_mul(real_t1, real_t1, real_t1);
 			mpf_mul(imag_t1, imag_t1, imag_t1);
 			mpf_add(real_t1, real_t1, imag_t1);
+
+            // is this really necessary?
 			mpf_sqrt(real_t1, real_t1);
 
 			if (mpf_cmp_d(real_t1, 1.0) < 0) // it's in the cardioid

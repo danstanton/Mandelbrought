@@ -7,7 +7,7 @@ MBFind : mb_find.cpp
 	g++ $< -o $@ -Wall -pipe -O3 -lgmpxx -lgmp 
 
 MBImg : mb_img.cpp
-	g++ $< -o $@ -Wall -pipe -O3 -I /usr/include/freetype2 -lpng -lpngwriter -lz -lfreetype
+	g++ $< -o $@ -Wall -pipe -O3 -lpng
 
 MBSeries : mb_series.cpp
 	g++ $< -o $@ -Wall -pipe -O3 -lgmpxx -lgmp 
