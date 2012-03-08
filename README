@@ -1,6 +1,6 @@
 Mandelbrought relies on:
   libgmp (gmplib.org)
-  libpngwriter (pngwriter.sourceforge.net) 
+  libpng (libpng.org)
 
 To build Mandelbrought, just use 'make'.
 
