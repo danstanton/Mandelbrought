@@ -49,7 +49,9 @@ int main( int ac, char ** av) {
 
 	png_structp png_ptr = NULL;
 	png_infop info_ptr = NULL;
-	png_colorp palette = NULL;
+	// png_colorp palette = NULL;
+
+	png_bytep *img_row = NULL;
 
 	bool err_jump = false;
 	err_jump |= flerr(!in_file, "open data file");
@@ -70,7 +72,6 @@ int main( int ac, char ** av) {
 	// things to get from the data file:
 	// img_width
 	// img_height
-	int err_cond;
 	uint img_width, img_height;
 	if(fleof(fscanf(in_file, "%ux%u", &img_width, &img_height), "read resolution"))
 		goto cleanup;
@@ -104,37 +105,42 @@ int main( int ac, char ** av) {
 
 	png_write_info(png_ptr, info_ptr);
 
+	/*
 	png_uint_32 k, height=img_height, width=img_width;
 	png_byte image[height][width*3];
 	png_bytep row_pointers[height];
+	*/
 
-	// use libpng example to fix this
+	img_row = new png_bytep[img_height];
+	for(uint i = 0; i < img_height; i++) {
+		img_row[i] = new png_byte[img_width*3];
+	}
+
+	/*
 	for (png_uint_32 k=0; k<height; k++)
 		row_pointers[k] = image + k*width*3;
+		*/
 
 	int current;
-	double red, green, blue;
+	// double red, green, blue;
+	png_bytep pixel;
 	// now make the images 
-	for(int y=0; y < img_height; y++) {
-		for(int x=0; x < img_width; x++) {
+	for(uint y=0; y < img_height; y++) {
+		for(uint x=0; x < img_width; x++) {
 
 			if(fleof(fscanf(in_file, "%u", &current), "read point value"))
 				goto cleanup;
 
-			255*cos(rfq*(double(current))+offset);
-			red = 0.0, green = 0.0, blue = 0.0;
-
-			if(current > 0) {
-				image[y][(x*3)+0] = current%256;
-				image[y][(x*3)+1] = current%256;
-				image[y][(x*3)+2] = current%256;
-			} 
+			pixel = ((img_row[y])+(x*3));
+			pixel[0] = current%256;
+			pixel[1] = current%256;
+			pixel[2] = current%256;
 		}
 	}
 
 	if(flerr(setjmp(png_jmpbuf(png_ptr)), "write PNG data"))
 		goto cleanup;
-	png_write_image(png_ptr, row_pointers);
+	png_write_image(png_ptr, img_row);
 
 	if(flerr(setjmp(png_jmpbuf(png_ptr)), "close PNG data"))
 		goto cleanup;
@@ -145,6 +151,16 @@ cleanup:
 	if(out_file) fclose(out_file);
 	if(color_file) fclose(color_file);
 	if(png_ptr) png_destroy_write_struct(&png_ptr, &info_ptr);
+	if(img_row) {
+		for(uint i = 0; i < img_height; i++) {
+			if(img_row[i]){
+				delete [] img_row[i];
+				img_row[i] = NULL;
+			}
+		}
+		delete [] img_row;
+		img_row = NULL;
+	}
 
 	return 0;
 }
