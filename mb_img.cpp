@@ -33,15 +33,11 @@ int main( int ac, char ** av) {
 
 	for(uint i = 0; i < strlen(av[1])-4; i++)
 		filename.push_back(av[1][i]);
-
-	/* filename.push_back('-');
-	filename.append(av[2]); */
 	filename.append(".png");
 
 	printf("%s\n",filename.c_str());
 
 	FILE *in_file=fopen(av[1], "r"),
-		 // *color_file=fopen(av[2], "r"),
 		 *out_file=fopen(filename.c_str(), "wb");
 
 	png_structp png_ptr = NULL;
@@ -50,7 +46,6 @@ int main( int ac, char ** av) {
 
 	bool err_jump = false;
 	err_jump |= flag_error(!in_file, "open data file");
-	// err_jump |= flag_error(!color_file, "open color spec");
 	err_jump |= flag_error(!out_file, "ready image output file");
 	if(err_jump) goto cleanup;
 
@@ -67,22 +62,6 @@ int main( int ac, char ** av) {
 	if(flag_eof(fscanf(in_file, "%ux%u", &img_width, &img_height), "read resolution"))
 		goto cleanup;
 
-	/*
-	double rfq, gfq, bfq;
-	int offset;
-	if(flag_eof(fscanf(color_file, "%lf", &rfq), "read red color spec"))
-		goto cleanup;
-	if(flag_eof(fscanf(color_file, "%lf", &gfq), "read green color spec"))
-		goto cleanup;
-	if(flag_eof(fscanf(color_file, "%lf", &bfq), "read blue color spec"))
-		goto cleanup;
-	if(flag_eof(fscanf(color_file, "%d", &offset), "read offset"))
-		goto cleanup;
-		*/
-
-	// fclose(color_file);
-	// color_file = NULL;
-
 	// Initialize the PNG structure for writing
 	if(flag_error(setjmp(png_jmpbuf(png_ptr)), "initialize PNG I/O")) 
 		goto cleanup;
@@ -92,30 +71,18 @@ int main( int ac, char ** av) {
 		goto cleanup;
 	png_set_IHDR(png_ptr, info_ptr, 
 			img_width, img_height, 
-			8 /* 8 means 24-bit RGB */, PNG_COLOR_TYPE_RGB, 
+			8 /* <-- means 24-bit RGB */, PNG_COLOR_TYPE_RGB, 
 			PNG_INTERLACE_NONE, 
 			PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 
 	png_write_info(png_ptr, info_ptr);
-
-	/*
-	png_uint_32 k, height=img_height, width=img_width;
-	png_byte image[height][width*3];
-	png_bytep row_pointers[height];
-	*/
 
 	img_row = new png_bytep[img_height];
 	for(uint i = 0; i < img_height; i++) {
 		img_row[i] = new png_byte[img_width*3];
 	}
 
-	/*
-	for (png_uint_32 k=0; k<height; k++)
-		row_pointers[k] = image + k*width*3;
-		*/
-
 	int current;
-	// double red, green, blue;
 	png_bytep pixel;
 	// now make the images 
 	for(uint y=0; y < img_height; y++) {
@@ -142,7 +109,6 @@ int main( int ac, char ** av) {
 cleanup:
 	if(in_file) fclose(in_file);
 	if(out_file) fclose(out_file);
-	// if(color_file) fclose(color_file);
 	if(png_ptr) png_destroy_write_struct(&png_ptr, &info_ptr);
 	if(img_row) {
 		for(uint i = 0; i < img_height; i++) {
