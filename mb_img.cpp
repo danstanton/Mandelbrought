@@ -26,15 +26,27 @@ char hexDigit(char one) {
 }
 
 char hexPair(char *pair) {
-	return hexDigit(pair[0])*16 + hexDigit(pair[1]);
+	char valuePair[] = {hexDigit(pair[0]), hexDigit(pair[1])};
+	for(int i=0; i < 2; i++)
+		if(valuePair[i] == 255) {
+			printf("%c is not a valid hexadecimal digit--using 0", pair[i]);
+			valuePair[i] = 0;
+		}
+	return valuePair[0]*16 + valuePair[1];
 }
 
 RGB parseHex(char *color_str) {
 	RGB group;
-	group.elem[0] = hexPair(color_str);
-	group.elem[1] = hexPair(color_str+2);
-	group.elem[2] = hexPair(color_str+4);
-	return group;
+	if(strlen(color_str) != 6) {
+		printf("Color spec \"%s\" is bad--using black", color_str);
+		for(uint i=0; i<3; i++) 
+			group.elem[i] = 0;
+		return group;
+	} else {
+		for(uint i=0; i<3; i++)
+			group.elem[i] = hexPair(color_str+(i*2));
+		return group;
+	}
 };
 
 struct color_node {
@@ -52,6 +64,7 @@ RGB linear_mix( int current_position, int total_distance, RGB first, RGB second)
 };
 
 typedef RGB (*gradient_fn)(int, int, RGB, RGB);
+
 gradient_fn fns[] = {&linear_mix};
 string fn_names[] = {"linear"};
 uint fn_count = 1;
@@ -100,7 +113,7 @@ int main( int ac, char ** av) {
 	head_fn->next = NULL;
 	temp_color = head_color;
 	temp_fn = head_fn;
-	char *temp_read = NULL;
+	char temp_read[30];
 
 
 	FILE *in_file=fopen(av[1], "r"),
@@ -174,9 +187,11 @@ int main( int ac, char ** av) {
 	}
 	// close color loop
 	delete temp_color;
+	temp_color = NULL;
 	prev_color->next = head_color;
 
 	delete temp_fn;
+	temp_fn = NULL;
 	prev_fn->next = head_fn;
 
 	// Initialize the PNG structure for writing
@@ -237,6 +252,30 @@ cleanup:
 		}
 		delete [] img_row;
 		img_row = NULL;
+	}
+
+	// Deleting a circular linked list
+	if(head_color) {
+		temp_color = head_color->next;
+		head_color->next = NULL;
+		head_color = temp_color;
+		while(head_color) {
+			temp_color = head_color->next;
+			delete head_color;
+			head_color = temp_color;
+		}
+	}
+
+	// Deleting another circular list
+	if(head_fn) {
+		temp_fn = head_fn->next;
+		head_fn->next = NULL;
+		head_fn = temp_fn;
+		while(head_fn) {
+			temp_fn = head_fn->next;
+			delete head_fn;
+			head_fn = temp_fn;
+		}
 	}
 
 	return 0;
