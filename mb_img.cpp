@@ -12,21 +12,22 @@
 using namespace std;
 
 typedef unsigned int uint;
+typedef unsigned char uchar;
 
 struct RGB {
-	char elem[3];
+	uchar elem[3];
 };
 
-char hexDigit(char one) {
+uchar hexDigit(char one) {
 	if(isdigit(one))
-		return (char)(one-'0');
+		return (uchar)(one-'0');
 	if(isalpha(one) && tolower(one)<'g')
-		return (char)tolower(one)-'a'+10;
+		return (uchar)tolower(one)-'a'+10;
 	return 255;
 }
 
-char hexPair(char *pair) {
-	char valuePair[] = {hexDigit(pair[0]), hexDigit(pair[1])};
+uchar hexPair(char *pair) {
+	uchar valuePair[] = {hexDigit(pair[0]), hexDigit(pair[1])};
 	for(int i=0; i < 2; i++)
 		if(valuePair[i] == 255) {
 			printf("%c is not a valid hexadecimal digit--using 0", pair[i]);
@@ -56,10 +57,11 @@ struct color_node {
 
 RGB linear_mix( int current_position, int total_distance, RGB first, RGB second) {
 	double mix_strength = double(current_position)/double(total_distance);
+
 	RGB result;
 	
 	for(uint i=0; i<3; i++)
-		result.elem[i] = (char)((1-mix_strength)*first.elem[i]+mix_strength*second.elem[i]);
+		result.elem[i] = (uchar)((1-mix_strength)*first.elem[i]+mix_strength*second.elem[i]);
 	return result;
 };
 
@@ -106,7 +108,7 @@ int main( int ac, char ** av) {
 	printf("%s\n",filename.c_str());
 
 	// vvvvv  Things to get from the color file
-	uint color_count = 0;
+	uint color_count = 0, gradient_length = 0;
 	color_node *head_color = new color_node, *temp_color = NULL, *prev_color = NULL;
 	fn_node *head_fn = new fn_node, *temp_fn = NULL, *prev_fn = NULL;
 	head_color->next = NULL;
@@ -124,6 +126,10 @@ int main( int ac, char ** av) {
 	png_infop info_ptr = NULL;
 	png_bytep *img_row = NULL;
 
+	// vvvvvvv For eventual gradient application
+	uint color_bookmark=0, true_depth, gradient_depth, depth_bookmark;
+	RGB dot_color;
+	png_bytep pixel;
 
 	bool err_jump = false;
 	err_jump |= flag_error(!in_file, "open data file");
@@ -170,6 +176,7 @@ int main( int ac, char ** av) {
 				found_match = true;
 				temp_fn->blender = fns[i];
 				temp_fn->distance = distance;
+				gradient_length += distance;
 				temp_fn->color_index = color_count-1;
 				temp_fn->next = new fn_node;
 				prev_fn  = temp_fn;
@@ -214,19 +221,39 @@ int main( int ac, char ** av) {
 		img_row[i] = new png_byte[img_width*3];
 	}
 
-	int current;
-	png_bytep pixel;
+	temp_fn = head_fn;
+	temp_color = head_color->next;
+	prev_color = head_color;
 	// now make the images 
 	for(uint y=0; y < img_height; y++) {
 		for(uint x=0; x < img_width; x++) {
 
-			if(flag_eof(fscanf(in_file, "%u", &current), "read point value"))
+			if(flag_eof(fscanf(in_file, "%u", &true_depth), "read point value"))
 				goto cleanup;
 
+			gradient_depth = true_depth%gradient_length;
+			// find correct function for gradient depth
+			temp_fn = head_fn;
+			depth_bookmark = 0;
+			while(depth_bookmark+temp_fn->distance <= gradient_depth) {
+				depth_bookmark += temp_fn->distance;
+				temp_fn = temp_fn->next;
+			}
+			// find correct colors for this function
+			while(color_bookmark != temp_fn->color_index) {
+				prev_color = temp_color;
+				temp_color = temp_color->next;
+				color_bookmark = (color_bookmark+1)%color_count;
+			}
+
+			// now use the inner function to set the color
+			dot_color = (temp_fn->blender)(
+					gradient_depth-depth_bookmark, temp_fn->distance,
+					prev_color->pixel, temp_color->pixel);
+
 			pixel = ((img_row[y])+(x*3));
-			pixel[0] = (current+100)%256;
-			pixel[1] = (current+80)%256;
-			pixel[2] = current%256;
+			for(uint i=0; i<3; i++)
+				pixel[i] = dot_color.elem[i];
 		}
 	}
 
