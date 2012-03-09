@@ -1,3 +1,4 @@
+#include <cctype> // for tolower
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -12,15 +13,33 @@ using namespace std;
 
 typedef unsigned int uint;
 
-struct color_node {
-	char red, green, blue;
-	color_node *next;
-};
-
-enum fn_type {LINEAR};
-
 struct RGB {
 	char elem[3];
+};
+
+char hexDigit(char one) {
+	if(isdigit(one))
+		return (char)(one-'0');
+	if(isalpha(one) && tolower(one)<'g')
+		return (char)tolower(one)-'a'+10;
+	return 255;
+}
+
+char hexPair(char *pair) {
+	return hexDigit(pair[0])*16 + hexDigit(pair[1]);
+}
+
+RGB parseHex(char *color_str) {
+	RGB group;
+	group.elem[0] = hexPair(color_str);
+	group.elem[1] = hexPair(color_str+2);
+	group.elem[2] = hexPair(color_str+4);
+	return group;
+};
+
+struct color_node {
+	RGB pixel;
+	color_node *next;
 };
 
 RGB linear_mix( int current_position, int total_distance, RGB first, RGB second) {
@@ -28,19 +47,19 @@ RGB linear_mix( int current_position, int total_distance, RGB first, RGB second)
 	RGB result;
 	
 	for(uint i=0; i<3; i++)
-		result.elem[i] = linear_helper(mix_strength, first.elem[i], second.elem[i]);
+		result.elem[i] = (char)((1-mix_strength)*first.elem[i]+mix_strength*second.elem[i]);
 	return result;
 };
 
-char linear_helper(double strength, char first, char second) {
-	return (char)((1-strength)*first + strength*second);
-};
-
-pair<string,RGB (*)(int, int, RGB, RGB)> fns = {pair("linear",&linear_mix)};
+typedef RGB (*gradient_fn)(int, int, RGB, RGB);
+gradient_fn fns[] = {&linear_mix};
+string fn_names[] = {"linear"};
+uint fn_count = 1;
 
 struct fn_node {
-	fn_type type;
+	RGB (*blender)(int, int, RGB, RGB);
 	uint distance;
+	uint color_index;
 	fn_node *next;
 };
 
@@ -73,6 +92,17 @@ int main( int ac, char ** av) {
 
 	printf("%s\n",filename.c_str());
 
+	// vvvvv  Things to get from the color file
+	uint color_count = 0;
+	color_node *head_color = new color_node, *temp_color = NULL, *prev_color = NULL;
+	fn_node *head_fn = new fn_node, *temp_fn = NULL, *prev_fn = NULL;
+	head_color->next = NULL;
+	head_fn->next = NULL;
+	temp_color = head_color;
+	temp_fn = head_fn;
+	char *temp_read = NULL;
+
+
 	FILE *in_file=fopen(av[1], "r"),
 		 *color_file=fopen(av[2], "r"),
 		 *out_file=fopen(filename.c_str(), "wb");
@@ -101,21 +131,53 @@ int main( int ac, char ** av) {
 	if(flag_eof(fscanf(in_file, "%ux%u", &img_width, &img_height), "read resolution"))
 		goto cleanup;
 
-	// vvvvv  Things to get from the color file
-	color_node *head_color = new color_node, *temp_color = NULL;
-	fn_node *head_fn = new fn_node, *temp_fn = NULL;
-	head_color.next = NULL;
-	head_fn.next = NULL;
-	char *temp_read=NULL;
-
-	fscanf(color_file, "%s", temp_read);
-
-	if(flerr(!parseHex(temp_read), "parse color spec"))
+	// get color first
+	if(flag_eof(fscanf(color_file, "%s", temp_read), "read first color"))
+		goto cleanup;
+	if(flag_error(strlen(temp_read) != 6, "understand malformed color spec"))
 		goto cleanup;
 
-	
-	
-	
+	temp_color->pixel = parseHex(temp_read);
+	temp_color->next = new color_node;
+	prev_color = temp_color;
+	temp_color = temp_color->next;
+	color_count++;
+
+	uint distance;
+	bool found_match;
+	while(fscanf(color_file, "%s", temp_read) != EOF) {
+		for(uint i=0; i<strlen(temp_read); i++) 
+			temp_read[i] = tolower(temp_read[i]);
+		
+		found_match = false;
+		for(uint i=0; i<fn_count; i++) {
+			if(strcmp(temp_read, fn_names[i].c_str())==0) {
+				if(flag_eof(fscanf(color_file, "%u", &distance), "find distance after function"))
+					goto cleanup;
+				found_match = true;
+				temp_fn->blender = fns[i];
+				temp_fn->distance = distance;
+				temp_fn->color_index = color_count-1;
+				temp_fn->next = new fn_node;
+				prev_fn  = temp_fn;
+				temp_fn = temp_fn->next;
+			}
+		}
+		if(found_match)
+			continue;
+
+		temp_color->pixel = parseHex(temp_read);
+		temp_color->next = new color_node;
+		prev_color = temp_color;
+		temp_color = temp_color->next;
+		color_count++;
+	}
+	// close color loop
+	delete temp_color;
+	prev_color->next = head_color;
+
+	delete temp_fn;
+	prev_fn->next = head_fn;
 
 	// Initialize the PNG structure for writing
 	if(flag_error(setjmp(png_jmpbuf(png_ptr)), "initialize PNG I/O")) 
