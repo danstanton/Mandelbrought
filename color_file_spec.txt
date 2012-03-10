@@ -14,6 +14,7 @@ In the template above:
 		The first item in the list above must be a color.
 	<fn_type> is one the following:
 			linear
+			... (more on the way soon).
 		At least one function specifier is required. It determines how
 		the gradient moves from one color to the next. If there is no
 		color after the last function, it uses the first color 
@@ -22,3 +23,5 @@ In the template above:
 		It represents how many steps in the fractal the gradient will
 		use to switch from the previous color to the next. The distance
 		takes a minimum value of 1.
+
+The filename is expected to have the ".grad" file extension.

@@ -9,3 +9,18 @@ This creates four executables:
   MBFind (find the numbers for a zoom region based on a previous image)
   MBImg (apply a coloring to a data file to produce a PNG image)
   MBSeries (produce multiple data files based on a zoom specification)
+
+How to use Mandelbrought (the first time):
+  1. Read in_file_spec.txt. This will let you know how to format a
+  file that can tell MBDat what to calculate.
+  2. Make an input file, e. g. "frac01"
+  3. Run "./MBDat frac01" -- This could take a long time depending on
+  the zoom level and resolution.
+  4. Read color_file_spec.txt. This will le you know how to format a
+  file that specifies a gradient.
+  5. Make a color gradient file, e. g. "blueorange.grad".
+  6. Use the output file from step 3 and the color gradient file to
+	create a PNG image like this: "./MBImg frac01.dat blueorange.grad"
+  7. You're done! The image should be available as
+	"frac01-blueorange.png"
+
