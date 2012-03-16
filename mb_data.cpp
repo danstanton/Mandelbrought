@@ -8,6 +8,31 @@ using namespace std;
 
 const int sqr_size = 2;
 
+void square_z_and_add_c(mpf_t z_real, mpf_t z_imag, mpf_t c_real, mpf_t c_imag) { //z_real, z_imag, c_real, c_imag) {
+	mpf_t temp_real, temp_imag;
+	mpf_init(temp_real);
+	mpf_init(temp_imag);
+	// square z
+	// temp_real = (z_real+z_imag)*(z_real-z_imag)
+	mpf_add(temp_real, z_real, z_imag);
+	mpf_sub(temp_imag, z_real, z_imag);
+	mpf_mul(temp_real, temp_real, temp_imag);
+
+	// z_imag = 2*z_real*z_imag
+	mpf_mul(temp_imag, z_real, z_imag);
+	mpf_mul_2exp(z_imag, temp_imag, 1);
+	// z_real = temp_real
+	mpf_set(z_real, temp_real);
+	// done with squaring p
+
+	// add c
+	mpf_add(z_real, z_real, c_real);
+	mpf_add(z_imag, z_imag, c_imag);
+
+	mpf_clear(temp_real);
+	mpf_clear(temp_imag);
+};
+
 bool out_of_diamond(mpf_t a_real, mpf_t a_imag) {
 	bool too_big;
 	mpf_t temp_real, temp_imag;
@@ -153,92 +178,25 @@ int main( int ac, char ** av) {
 			mpf_div(imag_g, imag_g, zoom);
 			mpf_add(imag_g, imag_g, focus_y);
 
-			mpf_t real_p, imag_p, real_t, imag_t;
-			mpf_init(real_t);
-			mpf_init(imag_t);
+			mpf_t real_p, imag_p;
 			mpf_init(real_p);
 			mpf_init(imag_p);
 
 			if (x_pos%1000 == 0)
 				printf("Progress: Y:%u X:%u       \r", y_pos, x_pos);
-			int i = 0;
-			bool too_big = false; 
-
-			/* This is only useful for large views of the set,
-			 * and those are better handled using doubles and so forth
-			// find miu and see if it's in the open unit disk
-			// miu = 1 - 2 * sqrt(1/4 - c)
-			mpf_set_d(real_t, 0.25);
-			mpf_sub(real_t, real_t, real_g);
-			mpf_neg(imag_t, imag_g);
-
-			mpf_complex_sqrt(real_t1, imag_t1, real_t, imag_t);
-			mpf_mul_2exp(real_t1, real_t1, 1);
-			mpf_mul_2exp(imag_t1, imag_t1, 1);
-			mpf_sub_ui(real_t1, real_t1, 1);
-			mpf_neg(real_t1, real_t1);
-			mpf_neg(imag_t1, imag_t1);
-			// Now, miu is in real_t1, imag_t1
-
-			mpf_mul(real_t1, real_t1, real_t1);
-			mpf_mul(imag_t1, imag_t1, imag_t1);
-			mpf_add(real_t1, real_t1, imag_t1);
-			mpf_sqrt(real_t1, real_t1);
-
-			if (mpf_cmp_d(real_t1, 1.0) < 0) {// it's in the cardioid
-				printf("time saved!\n");
-				goto calc_done;
-			}
-			*/
 
 
 			mpf_set(real_p, real_g);
 			mpf_set(imag_p, imag_g);
+			int i;
 
-test_place:
+			for(i = 1; (i < iter) && !bound_check(real_p, imag_p); i++)
+				square_z_and_add_c(real_p, imag_p, real_g, imag_g);
 
-			too_big = bound_check(real_p, imag_p);
-
-			i++;
-
-			if(too_big || i > iter)
-				goto calc_done;
-
-			// square p
-			// real_t = real_p*real_p - imag_p * imag_p
-			// real_t = (real_p+imag_p)*(real_p-imag_p)
-			mpf_add(real_t, real_p, imag_p);
-			mpf_sub(imag_t, real_p, imag_p);
-			mpf_mul(real_t, real_t, imag_t);
-			// imag_p = 2*real_p*imag_p
-			mpf_mul(imag_t, real_p, imag_p);
-			mpf_mul_2exp(imag_p, imag_t, 1);
-			// real_p = real_t
-			mpf_set(real_p, real_t);
-			// done with squaring p
-
-			// add c
-			mpf_add(real_p, real_p, real_g);
-			mpf_add(imag_p, imag_p, imag_g);
-			goto test_place;
-calc_done:
-
-			frac_map[y_pos][x_pos] = 0;
-			if(too_big)
-				frac_map[y_pos][x_pos] = i;
-			/*
-			else if (i > iter) {
-				printf("\nReal: ");
-				mpf_out_str(NULL, 10, (size_t)40, real_p);
-				printf("\nImag: ");
-				mpf_out_str(NULL, 10, (size_t)40, imag_p);
-			}
-			*/
+			frac_map[y_pos][x_pos] = i % iter;
 
 			mpf_clear(real_g);
 			mpf_clear(imag_g);
-			mpf_clear(real_t);
-			mpf_clear(imag_t);
 			mpf_clear(real_p);
 			mpf_clear(imag_p);
 		}
