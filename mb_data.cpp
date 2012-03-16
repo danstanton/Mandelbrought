@@ -99,16 +99,16 @@ int main( int ac, char ** av) {
 	// things to get from the file:
 	// img_width
 	// img_height
-	int *img_width = new int(), *img_height = new int();
-	temp_test = fscanf(in_file, "%ux%u", img_width, img_height) == EOF;
+	int img_width, img_height;
+	temp_test = fscanf(in_file, "%ux%u", &img_width, &img_height) == EOF;
 	if (temp_test == EOF) {
 		printf("could not read resolution %d \n", temp_test);
 		return 1;
 	}
 
-	int **frac_map = new int *[*img_height];
-	for(int i=0; i < *img_height; i++) 
-		frac_map[i] = new int[*img_width];
+	int **frac_map = new int *[img_height];
+	for(int i=0; i < img_height; i++) 
+		frac_map[i] = new int[img_width];
 
 	// focus_x
 	// focus_y
@@ -124,8 +124,8 @@ int main( int ac, char ** av) {
 	mpf_inp_str(zoom, in_file, 10);
 
 	// iter
-	int *iter = new int();
-	temp_test = fscanf(in_file, "%u", iter);
+	int iter;
+	temp_test = fscanf(in_file, "%u", &iter);
 	if (temp_test == EOF) {
 		printf("could not read iteration spec %d \n", temp_test);
 		return 1;
@@ -134,22 +134,22 @@ int main( int ac, char ** av) {
 	fclose(in_file);
 
 	// echo the input
-	printf("Image Size: %ux%u \n", *img_width, *img_height);
+	printf("Image Size: %ux%u \n", img_width, img_height);
 	// printf("zoom: %d \n", mpf_get_d(zoom));
-	printf("iterations per pixel: %u \n", *iter);
+	printf("iterations per pixel: %u \n", iter);
 
 	mpf_mul_2exp(zoom, zoom, 1);
 
 	// start the fractal
-	for (int y_pos = 0; y_pos < *img_height; y_pos++) {
-		for (int x_pos = 0; x_pos < *img_width; x_pos++) {
+	for (int y_pos = 0; y_pos < img_height; y_pos++) {
+		for (int x_pos = 0; x_pos < img_width; x_pos++) {
 			mpf_t real_g;
-			mpf_init_set_si(real_g, (2*x_pos - *img_width));
+			mpf_init_set_si(real_g, (2*x_pos - img_width));
 			mpf_div(real_g, real_g, zoom);
 			mpf_add(real_g, real_g, focus_x);
 
 			mpf_t imag_g;
-			mpf_init_set_si(imag_g, (2*y_pos - *img_height));
+			mpf_init_set_si(imag_g, (2*y_pos - img_height));
 			mpf_div(imag_g, imag_g, zoom);
 			mpf_add(imag_g, imag_g, focus_y);
 
@@ -192,8 +192,8 @@ int main( int ac, char ** av) {
 			*/
 
 
-			mpf_set_ui(real_p, 0);
-			mpf_set_ui(imag_p, 0);
+			mpf_set(real_p, real_g);
+			mpf_set(imag_p, imag_g);
 
 test_place:
 
@@ -201,7 +201,7 @@ test_place:
 
 			i++;
 
-			if(too_big || i > *iter)
+			if(too_big || i > iter)
 				goto calc_done;
 
 			// square p
@@ -227,7 +227,7 @@ calc_done:
 			if(too_big)
 				frac_map[y_pos][x_pos] = i;
 			/*
-			else if (i > *iter) {
+			else if (i > iter) {
 				printf("\nReal: ");
 				mpf_out_str(NULL, 10, (size_t)40, real_p);
 				printf("\nImag: ");
@@ -250,10 +250,10 @@ calc_done:
 	strcat(filename, ".dat");
 	FILE *data_file;
 	data_file = fopen(filename, "w");
-	fprintf(data_file, "%ux%u\n", *img_width, *img_height);
+	fprintf(data_file, "%ux%u\n", img_width, img_height);
 
-	for(int y=0; y < *img_height; y++)
-		for(int x=0; x < *img_width; x++)
+	for(int y=0; y < img_height; y++)
+		for(int x=0; x < img_width; x++)
 			fprintf(data_file, "%u\n", frac_map[y][x]);
 
 	delete [] data_file;
@@ -262,12 +262,9 @@ calc_done:
 	mpf_clear(focus_y);
 	mpf_clear(zoom);
 
-	for(int y=0; y < *img_height; y++)
+	for(int y=0; y < img_height; y++)
 		delete [] frac_map[y];
 
 	delete [] frac_map;
-	delete iter;
-	delete img_width;
-	delete img_height;
 	return 0;
 }
