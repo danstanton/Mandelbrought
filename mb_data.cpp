@@ -8,6 +8,48 @@ using namespace std;
 
 const int sqr_size = 2;
 
+bool out_of_diamond(mpf_t a_real, mpf_t a_imag) {
+	bool too_big;
+	mpf_t temp_real, temp_imag;
+	mpf_init(temp_real);
+	mpf_init(temp_imag);
+
+	// ?? a_r + a_i > sqr_size ??
+	mpf_abs(temp_real, a_real);
+	mpf_abs(temp_imag, a_imag);
+	mpf_add(temp_real, temp_real, temp_imag);
+	if (mpf_cmp_ui(temp_real, sqr_size) > 0)
+		too_big = true;
+	else
+		too_big = false;
+	mpf_clear(temp_real);
+	mpf_clear(temp_imag);
+	return too_big;
+};
+
+bool out_of_circle(mpf_t a_real, mpf_t a_imag) {
+	bool too_big;
+	mpf_t temp_real, temp_imag;
+	mpf_init(temp_real);
+	mpf_init(temp_imag);
+
+	// ?? sqrt( a_r^2 + a_i^2 ) > sqr_size ??
+	mpf_mul(temp_real, a_real, a_real);
+	mpf_mul(temp_imag, a_imag, a_imag);
+	mpf_add(temp_real, temp_real, temp_imag);
+	mpf_sqrt(temp_real, temp_real);
+	if (mpf_cmp_ui(temp_real, sqr_size) > 0)
+		too_big = true;
+	else
+		too_big = false;
+
+	mpf_clear(temp_real);
+	mpf_clear(temp_imag);
+	return too_big;
+};
+
+bool (*bound_check)(mpf_t, mpf_t) = &out_of_circle;
+
 void mpf_complex_sqrt(mpf_t rout, mpf_t iout, mpf_t rin, mpf_t iin) {
 	// sqrt of a complex number
 	// p = sqrt((sqrt(a^2+b^2)+a)/2)
@@ -63,6 +105,7 @@ int main( int ac, char ** av) {
 		printf("could not read resolution %d \n", temp_test);
 		return 1;
 	}
+
 	int **frac_map = new int *[*img_height];
 	for(int i=0; i < *img_height; i++) 
 		frac_map[i] = new int[*img_width];
@@ -98,8 +141,8 @@ int main( int ac, char ** av) {
 	mpf_mul_2exp(zoom, zoom, 1);
 
 	// start the fractal
-	for ( int y_pos = 0; y_pos < *img_height; y_pos++) {
-		for ( int x_pos = 0; x_pos < *img_width; x_pos++) {
+	for (int y_pos = 0; y_pos < *img_height; y_pos++) {
+		for (int x_pos = 0; x_pos < *img_width; x_pos++) {
 			mpf_t real_g;
 			mpf_init_set_si(real_g, (2*x_pos - *img_width));
 			mpf_div(real_g, real_g, zoom);
@@ -148,23 +191,13 @@ int main( int ac, char ** av) {
 			}
 			*/
 
+
 			mpf_set_ui(real_p, 0);
 			mpf_set_ui(imag_p, 0);
-test_place:
-			/* diamond method
-			mpf_abs(real_t, real_p);
-			mpf_abs(imag_t, imag_p);
-			mpf_add(real_t, real_t, imag_t);
-			if (mpf_cmp_ui(real_t, sqr_size) > 0)
-				too_big = true; */
 
-			// circle method
-			mpf_mul(real_t, real_p, real_p);
-			mpf_mul(imag_t, imag_p, imag_p);
-			mpf_add(real_t, real_t, imag_t);
-			mpf_sqrt(real_t, real_t);
-			if (mpf_cmp_ui(real_t, sqr_size) > 0)
-					too_big = true;
+test_place:
+
+			too_big = bound_check(real_p, imag_p);
 
 			i++;
 

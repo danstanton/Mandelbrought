@@ -1,7 +1,7 @@
 all : MBDat MBImg MBFind MBSeries
 
 MBDat : mb_data.cpp
-	g++ $< -o $@ -Wall -pipe -lgmpxx -lgmp 
+	g++ $< -o $@ -Wall -pipe -lgmpxx -lgmp -ggdb
 
 MBFind : mb_find.cpp
 	g++ $< -o $@ -Wall -pipe -lgmpxx -lgmp 
