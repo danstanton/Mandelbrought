@@ -12,18 +12,34 @@ void square_z_and_add_c(mpf_t z_real, mpf_t z_imag, mpf_t c_real, mpf_t c_imag) 
 	mpf_t temp_real, temp_imag;
 	mpf_init(temp_real);
 	mpf_init(temp_imag);
+
 	// square z
-	// temp_real = (z_real+z_imag)*(z_real-z_imag)
+	// -------------
+	// Mathematical justification
+	// Let z = a+ bi
+	// z^2 = (a+bi)*(a+bi)
+	//     = a^2 + 2*abi - b^2
+	//     = a^2 - b^2 + 2*abi
+	//     = (a+b)*(a-b) + 2*abi
+	//  real part : (a+b)*(a-b)
+	//  imaginary part : 2*a*b
+	//  ------------
+	//  Hopefully, reducing the calculation of the real part to one
+	//  multiplication increases the speed of the calculation, but I
+	//  haven't benchmarked it.
+
+	// First, temp_real gets the real part
 	mpf_add(temp_real, z_real, z_imag);
 	mpf_sub(temp_imag, z_real, z_imag);
 	mpf_mul(temp_real, temp_real, temp_imag);
 
-	// z_imag = 2*z_real*z_imag
+	// Now, z_imag gets the imaginary part
 	mpf_mul(temp_imag, z_real, z_imag);
 	mpf_mul_2exp(z_imag, temp_imag, 1);
-	// z_real = temp_real
+
+	// Now, z_real gets the real part from temp_real
 	mpf_set(z_real, temp_real);
-	// done with squaring p
+	// done with squaring z
 
 	// add c
 	mpf_add(z_real, z_real, c_real);
