@@ -8,6 +8,21 @@ using namespace std;
 
 const int sqr_size = 2;
 
+void write_data_to_file(int width, int height, int ** frac_data, char *in_file) {
+	char *filename = new char[50];
+	filename[0] = '\0';
+	strcat(filename, in_file);
+	strcat(filename, ".dat");
+	FILE *data_file;
+	data_file = fopen(filename, "w");
+	fprintf(data_file, "%ux%u\n", width, height);
+	for(int y=0; y < height; y++)
+		for(int x=0; x < width; x++)
+			fprintf(data_file, "%u\n", frac_data[y][x]);
+
+	fclose(data_file);
+};
+
 void init_c_from_specs(mpf_t c_val, int pos, int img_length, mpf_t zoom, mpf_t img_center) {
 	// This first step converts the position into a zero-centered value
 	// with maximum = img_length and minimum = -img_length
@@ -218,19 +233,7 @@ int main( int ac, char ** av) {
 		}
 	}
 
-	char *filename = new char[50];
-	filename[0] = '\0';
-	strcat(filename, av[1]);
-	strcat(filename, ".dat");
-	FILE *data_file;
-	data_file = fopen(filename, "w");
-	fprintf(data_file, "%ux%u\n", img_width, img_height);
-
-	for(int y=0; y < img_height; y++)
-		for(int x=0; x < img_width; x++)
-			fprintf(data_file, "%u\n", frac_map[y][x]);
-
-	delete [] data_file;
+	write_data_to_file(img_width, img_height, frac_map, av[1]);
 
 	mpf_clear(focus_x);
 	mpf_clear(focus_y);
