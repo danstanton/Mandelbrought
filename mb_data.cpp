@@ -8,6 +8,18 @@ using namespace std;
 
 const int sqr_size = 2;
 
+void init_c_from_specs(mpf_t c_val, int pos, int img_length, mpf_t zoom, mpf_t img_center) {
+	// This first step converts the position into a zero-centered value
+	// with maximum = img_length and minimum = -img_length
+	mpf_init_set_si(c_val, (2*pos - img_length));
+
+	// Dividing by the zoom brings the value to the proper precision
+	mpf_div(c_val, c_val, zoom);
+
+	// Adding the img_center brings the value to the proper place
+	mpf_add(c_val, c_val, img_center);
+};
+
 void square_z_and_add_c(mpf_t z_real, mpf_t z_imag, mpf_t c_real, mpf_t c_imag) { //z_real, z_imag, c_real, c_imag) {
 	mpf_t temp_real, temp_imag;
 	mpf_init(temp_real);
@@ -137,11 +149,8 @@ int main( int ac, char ** av) {
 
 	int temp_test;
 
-	// things to get from the file:
-	// img_width
-	// img_height
 	int img_width, img_height;
-	temp_test = fscanf(in_file, "%ux%u", &img_width, &img_height) == EOF;
+	temp_test = fscanf(in_file, "%ux%u", &img_width, &img_height);
 	if (temp_test == EOF) {
 		printf("could not read resolution %d \n", temp_test);
 		return 1;
@@ -184,28 +193,19 @@ int main( int ac, char ** av) {
 	// start the fractal
 	for (int y_pos = 0; y_pos < img_height; y_pos++) {
 		for (int x_pos = 0; x_pos < img_width; x_pos++) {
-			mpf_t real_g;
-			mpf_init_set_si(real_g, (2*x_pos - img_width));
-			mpf_div(real_g, real_g, zoom);
-			mpf_add(real_g, real_g, focus_x);
-
-			mpf_t imag_g;
-			mpf_init_set_si(imag_g, (2*y_pos - img_height));
-			mpf_div(imag_g, imag_g, zoom);
-			mpf_add(imag_g, imag_g, focus_y);
+			
+			mpf_t real_g, imag_g;
+			init_c_from_specs(real_g, x_pos, img_width, zoom, focus_x);
+			init_c_from_specs(imag_g, y_pos, img_height, zoom, focus_y);
 
 			mpf_t real_p, imag_p;
-			mpf_init(real_p);
-			mpf_init(imag_p);
+			mpf_init_set(real_p, real_g);
+			mpf_init_set(imag_p, imag_g);
 
 			if (x_pos%1000 == 0)
 				printf("Progress: Y:%u X:%u       \r", y_pos, x_pos);
 
-
-			mpf_set(real_p, real_g);
-			mpf_set(imag_p, imag_g);
 			int i;
-
 			for(i = 1; (i < iter) && !bound_check(real_p, imag_p); i++)
 				square_z_and_add_c(real_p, imag_p, real_g, imag_g);
 
