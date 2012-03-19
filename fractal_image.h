@@ -12,7 +12,6 @@ class Fractal_image {
 		int iter, img_width, img_height, **frac_data;
 		bool **have_depth, **above_axis; 
 		mpf_t focus_x, focus_y, zoom;
-		int fill_count;
 
 		void write_data_to_file(char *);
 

@@ -7,7 +7,6 @@ Fractal_image::Fractal_image(char *in_filename) {
 	frac_data = NULL;
 	have_depth = NULL;
 	above_axis = NULL;
-	fill_count = 0;
 
 	FILE *in_file;
 	in_file = fopen(in_filename, "r");
@@ -108,9 +107,6 @@ void Fractal_image::calc_depth(int x, int y) {
 	mpf_init_set(real_p, real_g);
 	mpf_init_set(imag_p, imag_g);
 
-	if (fill_count%1000 == 0)
-		printf("Fill count: %u / %u ", fill_count/1000, x*y/1000);
-
 	int i;
 	for(i = 1; (i < iter) && ! (this->*bound_check)(real_p, imag_p); i++)
 		square_z_and_add_c(real_p, imag_p, real_g, imag_g);
@@ -118,7 +114,6 @@ void Fractal_image::calc_depth(int x, int y) {
 	frac_data[y][x] = i % iter;
 	have_depth[y][x] = true;
 	above_axis[y][x] = (mpf_cmp_si(imag_p, 0) > 0);
-	fill_count++;
 
 	mpf_clear(real_g);
 	mpf_clear(imag_g);
@@ -268,7 +263,6 @@ void Fractal_image::bleed_color(int x, int y, int depth, bool axis) {
 		have_depth[y][x] = true;
 		frac_data[y][x] = depth;
 		above_axis[y][x] = axis;
-		fill_count++;
 		bleed_color(x+1, y, depth, axis);
 		bleed_color(x, y+1, depth, axis);
 		bleed_color(x-1, y, depth, axis);
