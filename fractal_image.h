@@ -9,7 +9,7 @@ const int bound_size = 2;
 class Fractal_image {
 	public:
 		bool (Fractal_image::*bound_check)(mpf_t, mpf_t); 
-		int iter, img_width, img_height, **frac_data;
+		int iter, img_width, img_height, **frac_data, fill_count;
 		bool **have_depth, **above_axis; 
 		mpf_t focus_x, focus_y, zoom;
 

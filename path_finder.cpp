@@ -30,9 +30,6 @@ void Fractal_image::fill_area(int x, int y) {
 	int test_depth = frac_data[y][x];
 	bool test_switch = above_axis[y][x];
 
-	if(test_depth == 0)
-		return;
-
 	bool same_this_way[4];
 	int same_count=0;
 	// Check the adjacent depths and see if anything matches
@@ -140,6 +137,7 @@ void Fractal_image::bleed_color(int x, int y, int depth, bool axis) {
 		have_depth[y][x] = true;
 		frac_data[y][x] = depth;
 		above_axis[y][x] = axis;
+		fill_count++;
 		bleed_color(x+1, y, depth, axis);
 		bleed_color(x, y+1, depth, axis);
 		bleed_color(x-1, y, depth, axis);

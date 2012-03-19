@@ -21,9 +21,16 @@ void Fractal_image::calc_depth(int x, int y) {
 	for(i = 1; (i < iter) && ! (this->*bound_check)(real_p, imag_p); i++)
 		square_z_and_add_c(real_p, imag_p, real_g, imag_g);
 
-	frac_data[y][x] = i % iter;
+	fill_count++;
+	int depth = i % iter;
+	frac_data[y][x] = depth;
 	have_depth[y][x] = true;
-	above_axis[y][x] = (mpf_cmp_si(imag_p, 0) > 0);
+	above_axis[y][x] = !depth || (mpf_cmp_si(imag_p, 0) > 0);
+
+	if((fill_count % 500) == 0) {
+		printf("Fill percent: %f \r", (fill_count*100.0)/(1.0*img_width*img_height));
+		fflush(stdout);
+	}
 
 	mpf_clear(real_g);
 	mpf_clear(imag_g);
