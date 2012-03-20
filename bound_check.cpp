@@ -8,7 +8,7 @@ bool Fractal_image::out_of_diamond(mpf_t a_real, mpf_t a_imag) {
 	mpf_init(temp_real);
 	mpf_init(temp_imag);
 
-	// ?? a_r + a_i > bound_size ??
+	// ?? abs(real) + abs(imag) > bound_size ??
 	mpf_abs(temp_real, a_real);
 	mpf_abs(temp_imag, a_imag);
 	mpf_add(temp_real, temp_real, temp_imag);
@@ -27,7 +27,7 @@ bool Fractal_image::out_of_circle(mpf_t a_real, mpf_t a_imag) {
 	mpf_init(temp_real);
 	mpf_init(temp_imag);
 
-	// ?? sqrt( a_r^2 + a_i^2 ) > bound_size ??
+	// ?? sqrt( real^2 + imag^2 ) > bound_size ??
 	mpf_mul(temp_real, a_real, a_real);
 	mpf_mul(temp_imag, a_imag, a_imag);
 	mpf_add(temp_real, temp_real, temp_imag);

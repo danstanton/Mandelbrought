@@ -14,11 +14,9 @@ int main( int ac, char ** av) {
 	if(!beauty.have_depth)
 		return 1;
 
-
-	// start the fractal
-	for (int y_pos = 0; y_pos < beauty.img_height; y_pos++)
-		for (int x_pos = 0; x_pos < beauty.img_width; x_pos++)
-			beauty.fill_area(x_pos, y_pos);
+	for (int y = 0; y < beauty.img_height; y++)
+		for (int x = 0; x < beauty.img_width; x++)
+			beauty.fill_area(x, y);
 
 	beauty.write_data_to_file(av[1]);
 	return 0;

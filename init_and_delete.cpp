@@ -7,7 +7,8 @@ Fractal_image::Fractal_image(char *in_filename) {
 	frac_data = NULL;
 	have_depth = NULL;
 	above_axis = NULL;
-	fill_count = 0;
+	calced = 0;
+	bled = 0;
 
 	FILE *in_file;
 	in_file = fopen(in_filename, "r");

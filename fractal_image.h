@@ -9,7 +9,7 @@ const int bound_size = 2;
 class Fractal_image {
 	public:
 		bool (Fractal_image::*bound_check)(mpf_t, mpf_t); 
-		int iter, img_width, img_height, **frac_data, fill_count;
+		int iter, img_width, img_height, **frac_data, calced, bled;
 		bool **have_depth, **above_axis; 
 		mpf_t focus_x, focus_y, zoom;
 
@@ -34,6 +34,7 @@ class Fractal_image {
 		void turn_right(int &, int &);
 		void step(int &, int &, int, int);
 
+		bool flat_area(int, int, int, bool);
 		void find_and_fill_path(int, int, int, int); 
 		void turn_walker_left(int &, int &, int &, int &, int &, int &);
 		void turn_walker_right(int &, int &, int &, int &, int &, int &);
