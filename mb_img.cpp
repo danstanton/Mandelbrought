@@ -55,21 +55,35 @@ struct color_node {
 	color_node *next;
 };
 
-RGB linear_mix( int current_position, int total_distance, RGB first, RGB second) {
-	double mix_strength = double(current_position)/double(total_distance);
-
+// for all mixes, 0 would be full first, 1 would be full second
+RGB apply_mix( double (*mixer)(int, int), int place, int range, RGB first, RGB second) {
+	double mix_strength = mixer(place, range);
 	RGB result;
-	
 	for(uint i=0; i<3; i++)
 		result.elem[i] = (uchar)((1-mix_strength)*first.elem[i]+mix_strength*second.elem[i]);
 	return result;
 };
 
-typedef RGB (*gradient_fn)(int, int, RGB, RGB);
+double linear_mix( int current_position, int total_distance) {
+	return double(current_position)/double(total_distance);
+};
 
-gradient_fn fns[] = {&linear_mix};
-string fn_names[] = {"linear"};
-uint fn_count = 1;
+RGB linear( int place, int range, RGB first, RGB second) {
+	return apply_mix(&linear_mix, place, range, first, second);
+};
+
+RGB color1( int current_position, int total_distance, RGB first, RGB second) {
+	return first;
+};
+
+RGB color2( int current_position, int total_distance, RGB first, RGB second) {
+	return second;
+};
+
+typedef RGB (*gradient_fn)(int, int, RGB, RGB);
+uint fn_count = 3; // REMEMBER TO CHANGE THIS NEXT TIME
+gradient_fn fns[] = {&linear, &color1, &color2};
+string fn_names[] = {"linear", "first", "second"};
 
 struct fn_node {
 	RGB (*blender)(int, int, RGB, RGB);
@@ -153,10 +167,10 @@ int main( int ac, char ** av) {
 	// get color first
 	if(flag_eof(fscanf(color_file, "%s", temp_read), "read first color"))
 		goto cleanup;
-	if(flag_error(strlen(temp_read) != 6, "understand malformed color spec"))
+	if(flag_error(temp_read[0] != '#', "parse first color"))
 		goto cleanup;
 
-	temp_color->pixel = parseHex(temp_read);
+	temp_color->pixel = parseHex((temp_read+1));
 	temp_color->next = new color_node;
 	prev_color = temp_color;
 	temp_color = temp_color->next;
@@ -165,33 +179,42 @@ int main( int ac, char ** av) {
 	uint distance;
 	bool found_match;
 	while(fscanf(color_file, "%s", temp_read) != EOF) {
-		for(uint i=0; i<strlen(temp_read); i++) 
-			temp_read[i] = tolower(temp_read[i]);
-		
-		found_match = false;
-		for(uint i=0; i<fn_count; i++) {
-			if(strcmp(temp_read, fn_names[i].c_str())==0) {
-				if(flag_eof(fscanf(color_file, "%u", &distance), "find distance after function"))
-					goto cleanup;
-				found_match = true;
-				temp_fn->blender = fns[i];
-				temp_fn->distance = distance;
-				gradient_length += distance;
-				temp_fn->color_index = color_count-1;
-				temp_fn->next = new fn_node;
-				prev_fn  = temp_fn;
-				temp_fn = temp_fn->next;
+		if(temp_read[0] == '#') {
+			//use color
+			temp_color->pixel = parseHex((temp_read+1));
+			temp_color->next = new color_node;
+			prev_color = temp_color;
+			temp_color = temp_color->next;
+			temp_color->next = NULL; // in case an error breaks the read loop
+			color_count++;
+		} else {
+			//find function
+			for(uint i=0; i<strlen(temp_read); i++) 
+				temp_read[i] = tolower(temp_read[i]);
+			found_match = false;
+			// simple linear search (adequate for under 50 functions)
+			for(uint i=0; i<fn_count; i++) {
+				if(strcmp(temp_read, fn_names[i].c_str())==0) {
+					if(flag_eof(fscanf(color_file, "%u", &distance), "find distance after function"))
+						goto cleanup;
+					found_match = true;
+					temp_fn->blender = fns[i];
+					temp_fn->distance = distance;
+					gradient_length += distance;
+					temp_fn->color_index = color_count-1;
+					temp_fn->next = new fn_node;
+					prev_fn = temp_fn;
+					temp_fn = temp_fn->next;
+					temp_fn->next = NULL; // in case we need to error out and delete the list
+					break;
+				}
 			}
-		}
-		if(found_match)
-			continue;
+			if(flag_error(!found_match, "match function"))
+				goto cleanup;
 
-		temp_color->pixel = parseHex(temp_read);
-		temp_color->next = new color_node;
-		prev_color = temp_color;
-		temp_color = temp_color->next;
-		color_count++;
+		}
 	}
+
 	// close color loop
 	delete temp_color;
 	temp_color = NULL;
@@ -281,27 +304,45 @@ cleanup:
 		img_row = NULL;
 	}
 
-	// Deleting a circular linked list
+	// Deleting a circular or regular linked list
 	if(head_color) {
 		temp_color = head_color->next;
 		head_color->next = NULL;
+		prev_color = head_color;
 		head_color = temp_color;
 		while(head_color) {
 			temp_color = head_color->next;
-			delete head_color;
+			if(head_color == prev_color) {
+				delete head_color;
+				prev_color = NULL;
+			}
 			head_color = temp_color;
+		}
+		if(prev_color) {
+			// Ah, it was just a regular list
+			delete prev_color;
+			prev_color = NULL;
 		}
 	}
 
-	// Deleting another circular list
+	// Deleting another circular or regular list
 	if(head_fn) {
 		temp_fn = head_fn->next;
 		head_fn->next = NULL;
+		prev_fn = head_fn;
 		head_fn = temp_fn;
 		while(head_fn) {
 			temp_fn = head_fn->next;
-			delete head_fn;
+			if(head_fn == prev_fn) {
+				delete head_fn;
+				prev_fn = NULL;
+			}
 			head_fn = temp_fn;
+		}
+		if(prev_fn) {
+			// it was a simple linked list
+			delete prev_fn;
+			prev_fn = NULL;
 		}
 	}
 

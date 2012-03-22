@@ -1,13 +1,22 @@
-all : MBDat MBImg MBFind MBSeries
+CC=g++
+CFLAGS=-c -g -Wall -O0 #-fprofile-arcs -ftest-coverage
+LDFLAGS=-g -lgmpxx -lgmp -O0 #-fprofile-arcs -ftest-coverage
+# SOURCES=mb_data.cpp mb_find.cpp mb_img.cpp fractal_image.cpp
+# OBJECTS=$(SOURCES:.cpp=.o)
+DATAOBJ=mb_data.o fractal_image.o z_and_c_math.o bound_check.o init_and_delete.o path_finder.o
+FINDOBJ=mb_find.o
+IMGOBJ=mb_img.o
 
-MBDat : mb_data.cpp
-	g++ $< -o $@ -Wall -pipe -O3 -lgmpxx -lgmp 
+all : MBDat MBImg MBFind
 
-MBFind : mb_find.cpp
-	g++ $< -o $@ -Wall -pipe -O3 -lgmpxx -lgmp 
+MBDat : $(DATAOBJ)
+	$(CC) $(LDFLAGS) $(DATAOBJ) -o $@
 
-MBImg : mb_img.cpp
-	g++ $< -o $@ -Wall -pipe -O3 -lpng
+MBFind : $(FINDOBJ)
+	$(CC) $(LDFLAGS) $< -o $@
 
-MBSeries : mb_series.cpp
-	g++ $< -o $@ -Wall -pipe -O3 -lgmpxx -lgmp 
+MBImg : $(IMGOBJ)
+	$(CC) $(LDFLAGS) -lpng $< -o $@
+
+.cpp.o:
+	$(CC) $(CFLAGS) $< -o $@

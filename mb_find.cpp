@@ -27,16 +27,16 @@ int main( int ac, char ** av) {
 	// things to get from the file:
 	// img_width
 	// img_height
-	int *img_width = new int(), *img_height = new int();
-	temp_test = fscanf(in_file, "%ux%u", img_width, img_height);
+	int img_width, img_height;
+	temp_test = fscanf(in_file, "%ux%u", &img_width, &img_height);
 	if (temp_test == EOF) {
 		printf("Could not read resolution.\n");
 		return 1;
 	}
 
 	// the halves are important to me now
-	*img_width /= 2;
-	*img_height /= 2;
+	img_width /= 2;
+	img_height /= 2;
 
 	// focus_x
 	// focus_y
@@ -54,7 +54,7 @@ int main( int ac, char ** av) {
 	fclose(in_file);
 
 	// echo the input
-	printf("Image Size: %ux%u \n", 2*(*img_width), 2*(*img_height));
+	printf("Image Size: %ux%u \n", 2*img_width, 2*img_height);
 
 	// get the coordinates
 	int x_coord = atoi(av[2]);
@@ -64,8 +64,8 @@ int main( int ac, char ** av) {
 	mpf_init(img_wid);
 	mpf_init(img_hei);
 
-	mpf_ui_div(img_wid, *img_width, zoom);
-	mpf_ui_div(img_hei, *img_height, zoom);
+	mpf_ui_div(img_wid, img_width, zoom);
+	mpf_ui_div(img_hei, img_height, zoom);
 
 	// get upper left corner
 	mpf_sub(focus_x, focus_x, img_wid);
@@ -85,9 +85,6 @@ int main( int ac, char ** av) {
 	printf("Y focus: \n");
 	mpf_out_str(NULL, 10, (size_t)40, focus_y);
 	printf("\n");
-
-	delete img_width;
-	delete img_height;
 
 	mpf_clear(img_wid);
 	mpf_clear(img_hei);
