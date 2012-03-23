@@ -1,6 +1,6 @@
 CC=g++
-CFLAGS=-c -g -Wall -O0 #-fprofile-arcs -ftest-coverage
-LDFLAGS=-g -lgmpxx -lgmp -O0 #-fprofile-arcs -ftest-coverage
+CFLAGS=-c -g -Wall -march=native -O3 #-fprofile-arcs -ftest-coverage
+LDFLAGS=-g -lgmpxx -lgmp -march=native -O3 #-fprofile-arcs -ftest-coverage
 # SOURCES=mb_data.cpp mb_find.cpp mb_img.cpp fractal_image.cpp
 # OBJECTS=$(SOURCES:.cpp=.o)
 DATAOBJ=mb_data.o fractal_image.o z_and_c_math.o bound_check.o init_and_delete.o path_finder.o
