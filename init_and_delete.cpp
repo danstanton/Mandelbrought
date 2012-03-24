@@ -28,11 +28,14 @@ bool well_read(int scanner) {
 	}
 };
 
+bool in_two(double target) {
+	return target <=2.0 && target >= -2.0;
+};
+
 Fractal_image::Fractal_image(char *in_filename) {
 	bound_check = &Fractal_image::out_of_circle;
 	frac_data = NULL;
 	have_depth = NULL;
-	// above_axis = NULL;
 	calced = 0;
 	bled = 0;
 
@@ -46,9 +49,11 @@ Fractal_image::Fractal_image(char *in_filename) {
 		return;
 	}
 
+	mpf_t eedge, dedge;
+	double edge[4];
+	bool cut = false;
+
 	mpf_set_default_prec(100);
-
-
 
 	if(!well_read(fscanf(in_file, "Horizontal: %upx\n", &img_width))) return;
 	if(!well_read(fscanf(in_file, "Vertical: %upx\n", &img_height))) return;
@@ -69,19 +74,39 @@ Fractal_image::Fractal_image(char *in_filename) {
 	printf("Zoom: %f \n", mpf_get_d(zoom));
 	printf("iterations per pixel: %u \n", iter);
 
+	// Detect any errors
+	mpf_init(eedge);
+	mpf_init(dedge);
+	mpf_ui_div(dedge, img_width, zoom);
+	mpf_div_ui(eedge, dedge, 2);
+	mpf_add(eedge, eedge, focus_x);
+	edge[0] = mpf_get_d(eedge);
+	mpf_sub(eedge, eedge, dedge);
+	edge[2] = mpf_get_d(eedge);
+	mpf_ui_div(dedge, img_height, zoom);
+	mpf_div_ui(eedge, dedge, 2);
+	mpf_add(eedge, eedge, focus_y);
+	edge[1] = mpf_get_d(eedge);
+	mpf_sub(eedge, eedge, dedge);
+	edge[3] = mpf_get_d(eedge);
+
+	cut = false;
+	for(int i=0; i<4; i++)
+		cut = cut || in_two(edge[i]);
+	if(!cut) {
+		printf("View of Mandelbrot set too wide. Please zoom in and try again.\n");
+		return;
+	}
+
 	mpf_mul_2exp(zoom, zoom, 1);
 
 	frac_data = new int *[img_height];
 	have_depth = new bool *[img_height];
-	// above_axis = new bool *[img_height];
 	for(int i=0; i < img_height; i++) {
 		frac_data[i] = new int[img_width];
 		have_depth[i] = new bool[img_width];
-		// above_axis[i] = new bool[img_width];
-		for(int j=0; j < img_width; j++) {
+		for(int j=0; j < img_width; j++)
 			have_depth[i][j] = false;
-			// above_axis[i][j] = false;
-		}
 	}
 }
 
@@ -89,14 +114,16 @@ Fractal_image::~Fractal_image() {
 	mpf_clear(focus_x);
 	mpf_clear(focus_y);
 	mpf_clear(zoom);
-	for(int y=0; y < img_height; y++){
-		delete [] frac_data[y];
-		delete [] have_depth[y];
-		// delete [] above_axis[y];
+	if(frac_data) {
+		for(int y=0; y < img_height; y++)
+			delete [] frac_data[y];
+		delete [] frac_data;
 	}
-	delete [] frac_data;
-	delete [] have_depth;
-	// delete [] above_axis;
+	if(have_depth) {
+		for(int y=0; y < img_height; y++)
+			delete [] have_depth[y];
+		delete [] have_depth;
+	}
 }
 
 void Fractal_image::write_data_to_file(char *in_file) {

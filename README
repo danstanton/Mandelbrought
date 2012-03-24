@@ -72,8 +72,10 @@ of iterations specified.
 
 Also, this optimization causes an error when the view area is too large.
 The region detection detects the entire outer region as continuous and
-does not show the Mandelbrot set at all. I should add some detection for
-this with an error message.
+fills in the entire Mandelbrot set as a single color. There is error 
+detection in place to avoid confusing blank image output, but it would
+be nice to allow output over wider views. Maybe I could add code to
+partition the view area and stitch together the results after.
   
 The first executable produces an intermediate form of the Mandelbrot set
 that can have any color scheme applied to it later. This is nice, but it
@@ -94,13 +96,14 @@ in the quadtree, some numbers would not be representable. As such,
 oversampling would be required to produce images that don't look "wrong"
 or "flicker" in a video. Later, I'll probably find that some parts of
 the quadtree should be discarded or stored to disk as the zoom goes
-deeper and memory requirements increase.
+deeper and memory requirements increase, but worrying about that now
+would be premature optimization.
 
 I would also like to make an external quadtree data structure that can
 provide a more permanent description of the Mandelbrot set. In other
 words, an arbitrarily large look-up table could be gradually built to
 provide deeper and deeper views into the Mandelbrot set. With that in
-place, an interactive view of the Mandelbrot set would be feasible.
+place, a deep interactive view of the Mandelbrot set would be feasible.
 
 I would also like to add another program that provides a better
 interface for choosing new points to zoom in on. Currently, the process
@@ -113,3 +116,6 @@ of zooming consists of:
 5. Input the pixel coordinates to MBFind to get a new input spec.
 6. Repeat as desired
 
+I don't want to have to deal with zooming or scrolling images, though. I
+wonder if there is some program or library that gives the coordinate
+choice interface and returns the result.
