@@ -1,14 +1,34 @@
-Mandelbrought relies on:
+Copyright 2012 Daniel Jacob Stanton
+
+Contact
+=======
+
+You may contact me, D.J. Stanton, with questions or comments at
+geometry180@gmail.com
+
+About
+=====
+
+Mandelbrought is a Mandelbrot fractal generator.
+
+Dependencies
+============
+
   libgmp (gmplib.org)
   libpng (libpng.org)
 
-To build Mandelbrought, just use 'make'.
+Building
+========
 
-This creates four executables:
+To build Mandelbrought, just execute 'make' (www.gnu.org/software/make/).
+
+This creates three executables:
   MBDat (produce a data file corresponding to a view area and resolution)
   MBFind (find the numbers for a zoom region based on a previous image)
   MBImg (apply a coloring to a data file to produce a PNG image)
-  MBSeries (produce multiple data files based on a zoom specification)
+
+Use
+===
 
 How to use Mandelbrought (the first time):
   1. Read in_file_spec.txt. This will let you know how to format a
@@ -23,4 +43,71 @@ How to use Mandelbrought (the first time):
 	create a PNG image like this: "./MBImg frac01.dat blueorange.grad"
   7. You're done! The image should be available as
 	"frac01-blueorange.png"
+
+Current and Planned Features
+============================
+
+Mandelbrought values precision over speed. To this end, it uses the GNU
+Multiple Precision Arithmetic library. As a result, this generator is
+much slower than others that use the architecture-limited 32 or 64-bit
+number representations. I think of this as near-infinite precision.
+Currently, this program has no way to represent numbers with more bits
+of precision than your computer has bits of memory, and there is no plan to
+circumvent this.
+
+Mandelbrought currently stores the entire image dataset in memory. For a
+12800x9600 image (wow!), the program uses ~700MB of memory. In the future,
+I may add an option to calculate smaller image tiles that are later
+stitched together, but this is not a priority for me.
+
+I tried to speed up execution by using a path-finding algorithm to
+detect regions of the image that will all be the same color (take the
+same number of iterations to escape). I haven't done a lot of
+benchmarking, but the speedup I saw was underwhelming (in the
+neighborhood of 5%). This is highly dependent on the region of the
+Mandelbrot set being calculated, though, and I expect it helps much more
+when it detects regions that do not escape since determining that
+something does not escape requires calculation of the maximum number
+of iterations specified.
+  
+The first executable produces an intermediate form of the Mandelbrot set
+that can have any color scheme applied to it later. This is nice, but it
+could be improved by adding a full representation of the final
+coordinates of any coordinates that do not escape. Then, if one wanted
+to increase the number of iterations used to detect escape a later time,
+the entire set would not have to be recalculated. 
+
+Other Things To Do
+==================
+
+The current input files are not easy for humans to read. I'd like to
+design new ones.
+
+I would like to add another program to the set that will automate the
+process of generating fractals in a zooming sequence. Also, to speed up
+this process, I'd like the program to use a quadtree for the
+data structure of the set description. In that way, reusing previously
+calculated data is natural. Assuming perfect square division of regions
+in the quadtree, some numbers would not be representable. As such,
+oversampling would be required to produce images that don't look "wrong"
+or "flicker" in a video. Later, I'll probably find that some parts of
+the quadtree should be discarded or stored to disk as the zoom goes
+deeper and memory requirements increase.
+
+I would also like to make an external quadtree data structure that can
+provide a more permanent description of the Mandelbrot set. In other
+words, an arbitrarily large look-up table could be gradually built to
+provide deeper and deeper views into the Mandelbrot set. With that in
+place, an interactive view of the Mandelbrot set would be feasible.
+
+I would also like to add another program that provides a better
+interface for choosing new points to zoom in on. Currently, the process
+of zooming consists of:
+
+1. Write an input specification.
+2. Generate the data with MBDat
+3. Generate an image with MBImg
+4. Find the pixel coordinates for the center of a new image in the GIMP
+5. Input the pixel coordinates to MBFind to get a new input spec.
+6. Repeat as desired
 
