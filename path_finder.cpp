@@ -39,7 +39,7 @@ void Fractal_image::step(int &x, int &y, int x_direction, int y_direction) {
 	y+=y_direction;
 }
 
-bool Fractal_image::flat_area(int x, int y, int depth, bool side) {
+bool Fractal_image::flat_area(int x, int y, int depth) { //, bool side) {
 	return (in_image(x, y) && (get_depth(x, y) == depth)); // && (above_axis[y][x] == side));
 }
 
@@ -49,7 +49,7 @@ void Fractal_image::fill_area(int x, int y) {
 	calc_depth(x, y);
 
 	int test_depth = frac_data[y][x];
-	bool test_side = above_axis[y][x];
+	// bool test_side = above_axis[y][x];
 
 	bool same_this_way[4];
 	int same_count = 0;
@@ -60,7 +60,7 @@ void Fractal_image::fill_area(int x, int y) {
 	for(int dir=0; dir<4; dir++) {
 		int x_adjacent = x+x_direction, y_adjacent = y+y_direction;
 
-		if(flat_area(x_adjacent, y_adjacent, test_depth, test_side)) {
+		if(flat_area(x_adjacent, y_adjacent, test_depth)) { //, test_side)) {
 			same_this_way[dir] = true;
 			same_count++;
 		} else same_this_way[dir] = false;
@@ -78,7 +78,7 @@ void Fractal_image::fill_area(int x, int y) {
 		x_direction = -1, y_direction = 0;
 		int x_adjacent = x, y_adjacent = y;
 
-		while(flat_area(x_adjacent, y_adjacent, test_depth, test_side)) {
+		while(flat_area(x_adjacent, y_adjacent, test_depth)) { //, test_side)) {
 			step(x_adjacent, y_adjacent, x_direction, y_direction);
 		}
 
@@ -115,17 +115,17 @@ void Fractal_image::find_and_fill_path(int x, int y, int x_direction, int y_dire
 
 	int x_dir = x_direction, y_dir = y_direction;
 	int area_depth = frac_data[y][x];
-	bool area_side = above_axis[y][x];
+	// bool area_side = above_axis[y][x];
 
 	// int path_length = 0;
 	do {
 		step(x_rightfoot, y_rightfoot, x_direction, y_direction);
-		if(!flat_area(x_rightfoot, y_rightfoot, area_depth, area_side)) {
+		if(!flat_area(x_rightfoot, y_rightfoot, area_depth)) { //, area_side)) {
 			// Missed a turn to the right
 			turn_walker_right(x_rightfoot, y_rightfoot, x_leftfoot, y_leftfoot, x_direction, y_direction);
 		} else {
 			step(x_leftfoot, y_leftfoot, x_direction, y_direction);
-			if(flat_area(x_leftfoot, y_leftfoot, area_depth, area_side))
+			if(flat_area(x_leftfoot, y_leftfoot, area_depth)) // , area_side))
 				turn_walker_left(x_rightfoot, y_rightfoot, x_leftfoot, y_leftfoot, x_direction, y_direction);
 		}
 		// path_length++;
@@ -142,29 +142,29 @@ void Fractal_image::find_and_fill_path(int x, int y, int x_direction, int y_dire
 		turn_right(x_direction, y_direction);
 		x_paintcan = x_rightfoot+x_direction, y_paintcan = y_rightfoot+y_direction;
 		turn_left(x_direction, y_direction);
-		bleed_color(x_paintcan, y_paintcan, area_depth, area_side);
+		bleed_color(x_paintcan, y_paintcan, area_depth); //, area_side);
 
 		step(x_rightfoot, y_rightfoot, x_direction, y_direction);
-		if(!flat_area(x_rightfoot, y_rightfoot, area_depth, area_side)) {
+		if(!flat_area(x_rightfoot, y_rightfoot, area_depth)) { // , area_side)) {
 			// Missed a turn to the right
 			turn_walker_right(x_rightfoot, y_rightfoot, x_leftfoot, y_leftfoot, x_direction, y_direction);
 		} else {
 			step(x_leftfoot, y_leftfoot, x_direction, y_direction);
-			if(flat_area(x_leftfoot, y_leftfoot, area_depth, area_side))
+			if(flat_area(x_leftfoot, y_leftfoot, area_depth)) // , area_side))
 				turn_walker_left(x_rightfoot, y_rightfoot, x_leftfoot, y_leftfoot, x_direction, y_direction);
 		}
 	} while(x_rightfoot != x || y_rightfoot != y || x_direction != x_dir || y_direction != y_dir);
 }
 
-void Fractal_image::bleed_color(int x, int y, int depth, bool side) {
+void Fractal_image::bleed_color(int x, int y, int depth) { // , bool side) {
 	if(in_image(x, y) && !have_depth[y][x]) {
 		frac_data[y][x] = depth;
-		above_axis[y][x] = side;
+		// above_axis[y][x] = side;
 		have_depth[y][x] = true;
 		bled++;
 
 		// bleed from top to bottom
-		bleed_color(x, y-1, depth, side);
+		bleed_color(x, y-1, depth); // , side);
 	}
 }
 

@@ -19,16 +19,27 @@ with Mandelbrought (in COPYING). If not, see
 
 using namespace std;
 
+bool well_read(int scanner) {
+	if(scanner == 0 || scanner == EOF) {
+		printf("Read error from input file.\n");
+		return false;
+	} else {
+		return true;
+	}
+};
+
 Fractal_image::Fractal_image(char *in_filename) {
 	bound_check = &Fractal_image::out_of_circle;
 	frac_data = NULL;
 	have_depth = NULL;
-	above_axis = NULL;
+	// above_axis = NULL;
 	calced = 0;
 	bled = 0;
 
 	FILE *in_file;
 	in_file = fopen(in_filename, "r");
+
+	char input_buffer[80];
 
 	if (in_file == NULL) {
 		printf("Could not open file.\n");
@@ -37,27 +48,19 @@ Fractal_image::Fractal_image(char *in_filename) {
 
 	mpf_set_default_prec(100);
 
-	int read_test;
 
-	read_test = fscanf(in_file, "%ux%u", &img_width, &img_height);
-	if (read_test == EOF) {
-		printf("could not read resolution %d \n", read_test);
-		return;
-	}
 
-	mpf_init(focus_x);
-	mpf_init(focus_y);
-	mpf_inp_str(focus_x, in_file, 10);
-	mpf_inp_str(focus_y, in_file, 10);
+	if(!well_read(fscanf(in_file, "Horizontal: %upx\n", &img_width))) return;
+	if(!well_read(fscanf(in_file, "Vertical: %upx\n", &img_height))) return;
 
-	mpf_init(zoom);
-	mpf_inp_str(zoom, in_file, 10);
+	if(!well_read(fscanf(in_file, "X Focus: %s\n", input_buffer))) return;
+	mpf_init_set_str(focus_x, input_buffer, 10);
+	if(!well_read(fscanf(in_file, "Y Focus: %s\n", input_buffer))) return;
+	mpf_init_set_str(focus_y, input_buffer, 10);
+	if(!well_read(fscanf(in_file, "Zoom: %s\n", input_buffer))) return;
+	mpf_init_set_str(zoom, input_buffer, 10);
 
-	read_test = fscanf(in_file, "%u", &iter);
-	if (read_test == EOF) {
-		printf("could not read iteration spec %d \n", read_test);
-		return;
-	}
+	if(!well_read(fscanf(in_file, "Depth: %u\n", &iter))) return;
 
 	fclose(in_file);
 
@@ -70,14 +73,14 @@ Fractal_image::Fractal_image(char *in_filename) {
 
 	frac_data = new int *[img_height];
 	have_depth = new bool *[img_height];
-	above_axis = new bool *[img_height];
+	// above_axis = new bool *[img_height];
 	for(int i=0; i < img_height; i++) {
 		frac_data[i] = new int[img_width];
 		have_depth[i] = new bool[img_width];
-		above_axis[i] = new bool[img_width];
+		// above_axis[i] = new bool[img_width];
 		for(int j=0; j < img_width; j++) {
 			have_depth[i][j] = false;
-			above_axis[i][j] = false;
+			// above_axis[i][j] = false;
 		}
 	}
 }
@@ -89,11 +92,11 @@ Fractal_image::~Fractal_image() {
 	for(int y=0; y < img_height; y++){
 		delete [] frac_data[y];
 		delete [] have_depth[y];
-		delete [] above_axis[y];
+		// delete [] above_axis[y];
 	}
 	delete [] frac_data;
 	delete [] have_depth;
-	delete [] above_axis;
+	// delete [] above_axis;
 }
 
 void Fractal_image::write_data_to_file(char *in_file) {

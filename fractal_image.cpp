@@ -45,7 +45,7 @@ void Fractal_image::calc_depth(int x, int y) {
 	int depth = i % iter;
 	frac_data[y][x] = depth;
 	have_depth[y][x] = true;
-	above_axis[y][x] = (depth != 0) && (mpf_cmp_si(imaginary_planet, 0) > 0);
+	// above_axis[y][x] = (depth != 0) && (mpf_cmp_si(imaginary_planet, 0) > 0);
 	calced++;
 
 	double pixels = img_width*img_height;

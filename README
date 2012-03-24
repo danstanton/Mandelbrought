@@ -68,7 +68,12 @@ neighborhood of 5%). This is highly dependent on the region of the
 Mandelbrot set being calculated, though, and I expect it helps much more
 when it detects regions that do not escape since determining that
 something does not escape requires calculation of the maximum number
-of iterations specified.
+of iterations specified. 
+
+Also, this optimization causes an error when the view area is too large.
+The region detection detects the entire outer region as continuous and
+does not show the Mandelbrot set at all. I should add some detection for
+this with an error message.
   
 The first executable produces an intermediate form of the Mandelbrot set
 that can have any color scheme applied to it later. This is nice, but it
@@ -79,9 +84,6 @@ the entire set would not have to be recalculated.
 
 Other Things To Do
 ==================
-
-The current input files are not easy for humans to read. I'd like to
-design new ones.
 
 I would like to add another program to the set that will automate the
 process of generating fractals in a zooming sequence. Also, to speed up
