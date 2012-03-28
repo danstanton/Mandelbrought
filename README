@@ -11,6 +11,9 @@ About
 
 Mandelbrought is a Mandelbrot fractal generator.
 
+I used "Mandelbrought" because I had always mispronounced the name as
+Man-del-bro until one of my friends corrected me.
+
 Dependencies
 ============
 
@@ -40,7 +43,7 @@ How to use Mandelbrought (the first time):
   file that specifies a gradient.
   5. Make a color gradient file, e. g. "blueorange.grad".
   6. Use the output file from step 3 and the color gradient file to
-	create a PNG image like this: "./MBImg frac01.dat blueorange.grad"
+	create a PNG image like this: "./MBImg frac01 frac01.dat blueorange.grad"
   7. You're done! The image should be available as
 	"frac01-blueorange.png"
 
@@ -50,15 +53,24 @@ Current and Planned Features
 Mandelbrought values precision over speed. To this end, it uses the GNU
 Multiple Precision Arithmetic library. As a result, this generator is
 much slower than others that use the architecture-limited 32 or 64-bit
-number representations. I think of this as near-infinite precision.
-Currently, this program has no way to represent numbers with more bits
-of precision than your computer has bits of memory, and there is no plan to
-circumvent this.
+number representations. I think the reduced speed is worth the near-
+infinite precision. Currently, this program has no way to represent 
+numbers with more bits of precision than your computer has bits of 
+memory, but I think that's reasonable :)
 
 Mandelbrought currently stores the entire image dataset in memory. For a
 12800x9600 image (wow!), the program uses ~700MB of memory. In the future,
 I may add an option to calculate smaller image tiles that are later
 stitched together, but this is not a priority for me.
+
+Mandelbrought continuously outputs data to a file as it executes. If
+MBDat is interrupted but you wanted it to finish, edit the .dat file
+that was produced and remove the last line if it is incomplete. Every
+line should have three numbers on it. Then, run MBDat again like this:
+
+./MBDat spec_file partial_dat_file
+
+MBDat will read the dat file and use it to continue generation.
 
 I tried to speed up execution by using a path-finding algorithm to
 detect regions of the image that will all be the same color (take the
@@ -82,7 +94,9 @@ that can have any color scheme applied to it later. This is nice, but it
 could be improved by adding a full representation of the final
 coordinates of any coordinates that do not escape. Then, if one wanted
 to increase the number of iterations used to detect escape a later time,
-the entire set would not have to be recalculated. 
+the entire set would not have to be recalculated. This would let you
+incrementally increase the number of iterations, minimizing the amount
+of calculation that has to be done to get the image you want.
 
 Other Things To Do
 ==================
@@ -91,19 +105,22 @@ I would like to add another program to the set that will automate the
 process of generating fractals in a zooming sequence. Also, to speed up
 this process, I'd like the program to use a quadtree for the
 data structure of the set description. In that way, reusing previously
-calculated data is natural. Assuming perfect square division of regions
-in the quadtree, some numbers would not be representable. As such,
-oversampling would be required to produce images that don't look "wrong"
-or "flicker" in a video. Later, I'll probably find that some parts of
+calculated data is natural. This process would also necessitate deciding
+on some level of oversampling. Maybe I could set that up in the input
+specification file. Later, I'll probably find that some parts of
 the quadtree should be discarded or stored to disk as the zoom goes
-deeper and memory requirements increase, but worrying about that now
-would be premature optimization.
+deeper and memory requirements increase.
 
 I would also like to make an external quadtree data structure that can
 provide a more permanent description of the Mandelbrot set. In other
 words, an arbitrarily large look-up table could be gradually built to
 provide deeper and deeper views into the Mandelbrot set. With that in
 place, a deep interactive view of the Mandelbrot set would be feasible.
+The SQLite R*Tree module would be helpful with this, but making some
+encoding system for it to accept arbitrary-precision fractions as an
+indexed column sounds like a pain. For now, I think my best option would
+be making a custom quadtree and figuring out how to store it to disk for
+a quick lookups.
 
 I would also like to add another program that provides a better
 interface for choosing new points to zoom in on. Currently, the process

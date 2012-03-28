@@ -158,9 +158,7 @@ void Fractal_image::find_and_fill_path(int x, int y, int x_direction, int y_dire
 
 void Fractal_image::bleed_color(int x, int y, int depth) { // , bool side) {
 	if(in_image(x, y) && !have_depth[y][x]) {
-		frac_data[y][x] = depth;
-		// above_axis[y][x] = side;
-		have_depth[y][x] = true;
+		set_depth(x, y, depth);
 		bled++;
 
 		// bleed from top to bottom

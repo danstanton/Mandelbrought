@@ -25,6 +25,12 @@ int Fractal_image::get_depth(int x, int y) {
 	return frac_data[y][x];
 }
 
+void Fractal_image::set_depth(int x, int y, int depth) {
+	frac_data[y][x] = depth;
+	have_depth[y][x] = true;
+	fprintf(data_file, "%u %u %u\n", x, y, depth);
+}
+
 void Fractal_image::calc_depth(int x, int y) {
 	mpf_t real_c, imaginary_c;
 	init_c_from_specs(real_c, x, img_width, focus_x);
@@ -43,17 +49,17 @@ void Fractal_image::calc_depth(int x, int y) {
 	}
 
 	int depth = i % iter;
-	frac_data[y][x] = depth;
-	have_depth[y][x] = true;
-	// above_axis[y][x] = (depth != 0) && (mpf_cmp_si(imaginary_planet, 0) > 0);
+	set_depth(x, y, depth);
 	calced++;
 
+	/*
 	double pixels = img_width*img_height;
 
 	if((calced % 500) == 0) {
 		printf("Fill ratio: %f \r", double(calced+bled)/pixels);
 		fflush(stdout);
 	}
+	*/
 
 	mpf_clear(real_c);
 	mpf_clear(imaginary_c);

@@ -22,8 +22,9 @@ using namespace std;
 
 
 int main( int ac, char ** av) {
-	if ( ac < 2 ) {
+	if ( ac < 2 || ac > 3 ) {
 		printf("Usage: %s in_file\n", av[0]);
+		printf("   or: %s in_file in_file.dat\n", av[0]);
 		return 1;
 	}
 
@@ -31,10 +32,14 @@ int main( int ac, char ** av) {
 	if(!beauty.have_depth)
 		return 1;
 
+	if(ac == 3) {
+		beauty.load_data(av[2]);
+	}
+
 	for (int y = 0; y < beauty.img_height; y++)
 		for (int x = 0; x < beauty.img_width; x++)
 			beauty.fill_area(x, y);
 
-	beauty.write_data_to_file(av[1]);
+	// beauty.write_data_to_file(av[1]);
 	return 0;
 }

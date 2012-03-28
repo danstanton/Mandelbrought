@@ -32,26 +32,46 @@ bool in_two(double target) {
 	return target <=2.0 && target >= -2.0;
 };
 
+void Fractal_image::load_data(char *in_data) {
+	if(data_file) 
+		fclose(data_file);
+	data_file = fopen(in_data, "r+");
+	int x, y, depth;
+	while(fscanf(data_file, "%u %u %u", &x, &y, &depth) == 3) {
+		// don't use set_depth. it would try to write to the data_file
+		frac_data[y][x] = depth;
+		have_depth[y][x] = true;
+	}
+}
+
 Fractal_image::Fractal_image(char *in_filename) {
 	bound_check = &Fractal_image::out_of_circle;
 	frac_data = NULL;
 	have_depth = NULL;
 	calced = 0;
 	bled = 0;
-
+	char filename[50], input_buffer[80];
 	FILE *in_file;
+
+	mpf_t eedge, dedge;
+	double edge[4];
+	bool cut = false;
+
 	in_file = fopen(in_filename, "r");
-
-	char input_buffer[80];
-
 	if (in_file == NULL) {
 		printf("Could not open file.\n");
 		return;
 	}
 
-	mpf_t eedge, dedge;
-	double edge[4];
-	bool cut = false;
+	filename[0] = '\0';
+	strcat(filename, in_filename);
+	strcat(filename, ".dat");
+
+	data_file = fopen(filename, "w");
+	if (data_file == NULL) {
+		printf("Could not open data file.\n");
+		return;
+	}
 
 	mpf_set_default_prec(100);
 
@@ -111,14 +131,17 @@ Fractal_image::Fractal_image(char *in_filename) {
 }
 
 Fractal_image::~Fractal_image() {
+	fclose(data_file);
 	mpf_clear(focus_x);
 	mpf_clear(focus_y);
 	mpf_clear(zoom);
+
 	if(frac_data) {
 		for(int y=0; y < img_height; y++)
 			delete [] frac_data[y];
 		delete [] frac_data;
 	}
+
 	if(have_depth) {
 		for(int y=0; y < img_height; y++)
 			delete [] have_depth[y];

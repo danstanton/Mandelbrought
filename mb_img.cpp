@@ -129,11 +129,11 @@ int main( int ac, char ** av) {
 
 	string filename;
 
-	for(uint i = 0; i < strlen(av[1])-4; i++)
-		filename.push_back(av[1][i]);
-	filename.push_back('-');
-	for(uint i = 0; i < strlen(av[2])-5; i++)
+	for(uint i = 0; i < strlen(av[2])-4; i++)
 		filename.push_back(av[2][i]);
+	filename.push_back('-');
+	for(uint i = 0; i < strlen(av[3])-5; i++)
+		filename.push_back(av[3][i]);
 	filename.append(".png");
 
 	printf("%s\n",filename.c_str());
@@ -149,8 +149,9 @@ int main( int ac, char ** av) {
 	char temp_read[30];
 
 
-	FILE *in_file=fopen(av[1], "r"),
-		 *color_file=fopen(av[2], "r"),
+	FILE *spec_file = fopen(av[1], "r"),
+		 *in_file=fopen(av[2], "r"),
+		 *color_file=fopen(av[3], "r"),
 		 *out_file=fopen(filename.c_str(), "wb");
 
 	png_structp png_ptr = NULL;
@@ -163,6 +164,7 @@ int main( int ac, char ** av) {
 	png_bytep pixel;
 
 	bool err_jump = false;
+	err_jump |= flag_error(!spec_file, "open specification file");
 	err_jump |= flag_error(!in_file, "open data file");
 	err_jump |= flag_error(!color_file, "open gradient file");
 	err_jump |= flag_error(!out_file, "ready image output file");
@@ -178,7 +180,9 @@ int main( int ac, char ** av) {
 		goto cleanup;
 
 	uint img_width, img_height; // <-- Things to get from the data file
-	if(flag_eof(fscanf(in_file, "%ux%u", &img_width, &img_height), "read resolution"))
+
+	if(flag_eof(fscanf(spec_file, "Horizontal: %upx\n", &img_width), "read width")
+			|| flag_eof(fscanf(spec_file, "Vertical: %upx\n", &img_height), "read height"))
 		goto cleanup;
 
 	// get color first
@@ -241,6 +245,7 @@ int main( int ac, char ** av) {
 	temp_fn = NULL;
 	prev_fn->next = head_fn;
 
+	int x, y;
 	// Initialize the PNG structure for writing
 	if(flag_error(setjmp(png_jmpbuf(png_ptr)), "initialize PNG I/O")) 
 		goto cleanup;
@@ -265,6 +270,34 @@ int main( int ac, char ** av) {
 	temp_color = head_color->next;
 	prev_color = head_color;
 	// now make the images 
+	while(fscanf(in_file, "%u %u %u", &x, &y, &true_depth) == 3) {
+		gradient_depth = true_depth % gradient_length;
+		
+		// find correct function for gradient depth
+		temp_fn = head_fn;
+		depth_bookmark = 0;
+		while(depth_bookmark+temp_fn->distance <= gradient_depth) {
+			depth_bookmark += temp_fn->distance;
+			temp_fn = temp_fn->next;
+		}
+		// find correct colors for this function
+		while(color_bookmark != temp_fn->color_index) {
+			prev_color = temp_color;
+			temp_color = temp_color->next;
+			color_bookmark = (color_bookmark+1)%color_count;
+		}
+
+		// now use the inner function to set the color
+		dot_color = (temp_fn->blender)(
+				gradient_depth-depth_bookmark, temp_fn->distance,
+				prev_color->pixel, temp_color->pixel);
+
+		pixel = ((img_row[y])+(x*3));
+		for(uint i=0; i<3; i++)
+			pixel[i] = dot_color.elem[i];
+	}
+
+	/*
 	for(uint y=0; y < img_height; y++) {
 		for(uint x=0; x < img_width; x++) {
 
@@ -296,6 +329,7 @@ int main( int ac, char ** av) {
 				pixel[i] = dot_color.elem[i];
 		}
 	}
+	*/
 
 	if(flag_error(setjmp(png_jmpbuf(png_ptr)), "write PNG data"))
 		goto cleanup;
