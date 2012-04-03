@@ -43,6 +43,66 @@ bool Fractal_image::flat_area(int x, int y, int depth) { //, bool side) {
 	return (in_image(x, y) && (get_depth(x, y) == depth)); // && (above_axis[y][x] == side));
 }
 
+bool in_two(double target) {
+	return target <=1.0 && target >= -1.0;
+};
+
+void Fractal_image::become_image() {
+	mpf_t eedge, dedge;
+	double edge[4];
+	bool cut = false;
+
+	// start with the middle line if needed
+	mpf_init(eedge);
+	mpf_init(dedge);
+
+	mpf_ui_div(dedge, img_width, zoom);
+	mpf_div_ui(eedge, dedge, 2);
+	mpf_add(eedge, eedge, focus_x);
+	edge[0] = mpf_get_d(eedge);
+	mpf_sub(eedge, eedge, dedge);
+	edge[2] = mpf_get_d(eedge);
+	mpf_ui_div(dedge, img_height, zoom);
+	mpf_div_ui(eedge, dedge, 2);
+	mpf_add(eedge, eedge, focus_y);
+	edge[1] = mpf_get_d(eedge);
+	mpf_sub(eedge, eedge, dedge);
+	edge[3] = mpf_get_d(eedge);
+
+	cut = false;
+	for(int i=0; i<4; i++)
+		cut = cut || in_two(edge[i]);
+
+	mpf_clear(eedge);
+	mpf_clear(dedge);
+
+	if(!cut) {
+		//printf("View of Mandelbrot set is whole.\n");
+		// Find the center line
+		int center;
+		// set edge[0] as the size of the image
+		edge[0] = (edge[1]-edge[3]);
+
+		// edge[1] is already the distance of y=0 from the top
+		// edge[1]/edge[0] will be the fractional distance of the line
+		// y=0 from the top of the image.
+
+		center = (edge[1]/edge[0])*img_height;
+		// draw the line down the center
+		// It should hopefully step left when it realizes all the
+		// surrounding areas are the same. Once it steps back far
+		// enough, it'll wrap an area around the mandelbrot set.
+		// I'm using minus two because the image edge is also counted as
+		// an edge, and we don't want to use that yet.
+		for( int i=img_width-2; i>=0; i--)
+			fill_area(i, center);
+	}
+
+	for(int j=0; j<img_height; j++)
+		for(int i=0; i<img_width; i++)
+			fill_area(i, j);
+}
+
 void Fractal_image::fill_area(int x, int y) {
 	if(have_depth[y][x])
 		return;

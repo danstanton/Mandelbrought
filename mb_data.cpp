@@ -36,10 +36,7 @@ int main( int ac, char ** av) {
 		beauty.load_data(av[2]);
 	}
 
-	for (int y = 0; y < beauty.img_height; y++)
-		for (int x = 0; x < beauty.img_width; x++)
-			beauty.fill_area(x, y);
+	beauty.become_image();
 
-	// beauty.write_data_to_file(av[1]);
 	return 0;
 }

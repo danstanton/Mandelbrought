@@ -29,6 +29,7 @@ class Fractal_image {
 		int iter, img_width, img_height, **frac_data, calced, bled;
 		bool **have_depth; //, **above_axis; 
 		mpf_t focus_x, focus_y, zoom;
+		bool have_fx, have_fy, have_z;
 		FILE *data_file;
 
 		void write_data_to_file(char *);
@@ -47,6 +48,7 @@ class Fractal_image {
 		void calc_depth(int, int);
 		int get_depth(int, int);
 		void fill_area(int, int);
+		void become_image();
 
 		bool in_image(int, int);
 		void turn_left(int &, int &);

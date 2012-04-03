@@ -81,13 +81,6 @@ Mandelbrot set being calculated, though, and I expect it helps much more
 when it detects regions that do not escape since determining that
 something does not escape requires calculation of the maximum number
 of iterations specified. 
-
-Also, this optimization causes an error when the view area is too large.
-The region detection detects the entire outer region as continuous and
-fills in the entire Mandelbrot set as a single color. There is error 
-detection in place to avoid confusing blank image output, but it would
-be nice to allow output over wider views. Maybe I could add code to
-partition the view area and stitch together the results after.
   
 The first executable produces an intermediate form of the Mandelbrot set
 that can have any color scheme applied to it later. This is nice, but it

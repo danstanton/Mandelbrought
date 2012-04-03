@@ -122,8 +122,8 @@ bool flag_eof( int error, string task) {
 };
 
 int main( int ac, char ** av) {
-	if ( ac < 3 ) {
-		printf("Usage: %s dat_file color_file\n", av[0]);
+	if ( ac < 4 ) {
+		printf("Usage: %s spec_file dat_file color_file\n", av[0]);
 		return 0;
 	}
 
@@ -147,7 +147,6 @@ int main( int ac, char ** av) {
 	temp_color = head_color;
 	temp_fn = head_fn;
 	char temp_read[30];
-
 
 	FILE *spec_file = fopen(av[1], "r"),
 		 *in_file=fopen(av[2], "r"),

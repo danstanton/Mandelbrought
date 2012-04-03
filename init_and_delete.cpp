@@ -28,10 +28,6 @@ bool well_read(int scanner) {
 	}
 };
 
-bool in_two(double target) {
-	return target <=2.0 && target >= -2.0;
-};
-
 void Fractal_image::load_data(char *in_data) {
 	if(data_file) 
 		fclose(data_file);
@@ -48,14 +44,14 @@ Fractal_image::Fractal_image(char *in_filename) {
 	bound_check = &Fractal_image::out_of_circle;
 	frac_data = NULL;
 	have_depth = NULL;
+	have_fx = false;
+	have_fy = false;
+	have_z = false;
 	calced = 0;
 	bled = 0;
 	char filename[50], input_buffer[80];
 	FILE *in_file;
 
-	mpf_t eedge, dedge;
-	double edge[4];
-	bool cut = false;
 
 	in_file = fopen(in_filename, "r");
 	if (in_file == NULL) {
@@ -80,10 +76,13 @@ Fractal_image::Fractal_image(char *in_filename) {
 
 	if(!well_read(fscanf(in_file, "X Focus: %s\n", input_buffer))) return;
 	mpf_init_set_str(focus_x, input_buffer, 10);
+	have_fx = true;
 	if(!well_read(fscanf(in_file, "Y Focus: %s\n", input_buffer))) return;
 	mpf_init_set_str(focus_y, input_buffer, 10);
+	have_fy = true;
 	if(!well_read(fscanf(in_file, "Zoom: %s\n", input_buffer))) return;
 	mpf_init_set_str(zoom, input_buffer, 10);
+	have_z = true;
 
 	if(!well_read(fscanf(in_file, "Depth: %u\n", &iter))) return;
 
@@ -94,29 +93,6 @@ Fractal_image::Fractal_image(char *in_filename) {
 	printf("Zoom: %f \n", mpf_get_d(zoom));
 	printf("iterations per pixel: %u \n", iter);
 
-	// Detect any errors
-	mpf_init(eedge);
-	mpf_init(dedge);
-	mpf_ui_div(dedge, img_width, zoom);
-	mpf_div_ui(eedge, dedge, 2);
-	mpf_add(eedge, eedge, focus_x);
-	edge[0] = mpf_get_d(eedge);
-	mpf_sub(eedge, eedge, dedge);
-	edge[2] = mpf_get_d(eedge);
-	mpf_ui_div(dedge, img_height, zoom);
-	mpf_div_ui(eedge, dedge, 2);
-	mpf_add(eedge, eedge, focus_y);
-	edge[1] = mpf_get_d(eedge);
-	mpf_sub(eedge, eedge, dedge);
-	edge[3] = mpf_get_d(eedge);
-
-	cut = false;
-	for(int i=0; i<4; i++)
-		cut = cut || in_two(edge[i]);
-	if(!cut) {
-		printf("View of Mandelbrot set too wide. Please zoom in and try again.\n");
-		return;
-	}
 
 	mpf_mul_2exp(zoom, zoom, 1);
 
@@ -132,9 +108,12 @@ Fractal_image::Fractal_image(char *in_filename) {
 
 Fractal_image::~Fractal_image() {
 	fclose(data_file);
-	mpf_clear(focus_x);
-	mpf_clear(focus_y);
-	mpf_clear(zoom);
+	if(have_fx)
+		mpf_clear(focus_x);
+	if(have_fy)
+		mpf_clear(focus_y);
+	if(have_z)
+		mpf_clear(zoom);
 
 	if(frac_data) {
 		for(int y=0; y < img_height; y++)
