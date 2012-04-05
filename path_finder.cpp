@@ -48,33 +48,33 @@ bool in_two(double target) {
 };
 
 void Fractal_image::become_image() {
-	mpf_t eedge, dedge;
+	mpfr_t eedge, dedge;
 	double edge[4];
 	bool cut = false;
 
 	// start with the middle line if needed
-	mpf_init(eedge);
-	mpf_init(dedge);
+	mpfr_init(eedge);
+	mpfr_init(dedge);
 
-	mpf_ui_div(dedge, img_width, zoom);
-	mpf_div_ui(eedge, dedge, 2);
-	mpf_add(eedge, eedge, focus_x);
-	edge[0] = mpf_get_d(eedge);
-	mpf_sub(eedge, eedge, dedge);
-	edge[2] = mpf_get_d(eedge);
-	mpf_ui_div(dedge, img_height, zoom);
-	mpf_div_ui(eedge, dedge, 2);
-	mpf_add(eedge, eedge, focus_y);
-	edge[1] = mpf_get_d(eedge);
-	mpf_sub(eedge, eedge, dedge);
-	edge[3] = mpf_get_d(eedge);
+	mpfr_ui_div(dedge, img_width, zoom, GMP_RNDN);
+	mpfr_div_ui(eedge, dedge, 2, GMP_RNDN);
+	mpfr_add(eedge, eedge, focus_x, GMP_RNDN);
+	edge[0] = mpfr_get_d(eedge, GMP_RNDN);
+	mpfr_sub(eedge, eedge, dedge, GMP_RNDN);
+	edge[2] = mpfr_get_d(eedge, GMP_RNDN);
+	mpfr_ui_div(dedge, img_height, zoom, GMP_RNDN);
+	mpfr_div_ui(eedge, dedge, 2, GMP_RNDN);
+	mpfr_add(eedge, eedge, focus_y, GMP_RNDN);
+	edge[1] = mpfr_get_d(eedge, GMP_RNDN);
+	mpfr_sub(eedge, eedge, dedge, GMP_RNDN);
+	edge[3] = mpfr_get_d(eedge, GMP_RNDN);
 
 	cut = false;
 	for(int i=0; i<4; i++)
 		cut = cut || in_two(edge[i]);
 
-	mpf_clear(eedge);
-	mpf_clear(dedge);
+	mpfr_clear(eedge);
+	mpfr_clear(dedge);
 
 	if(!cut) {
 		//printf("View of Mandelbrot set is whole.\n");

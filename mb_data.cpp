@@ -20,7 +20,6 @@ with Mandelbrought (in COPYING). If not, see
 
 using namespace std;
 
-
 int main( int ac, char ** av) {
 	if ( ac < 2 || ac > 3 ) {
 		printf("Usage: %s in_file\n", av[0]);

@@ -20,29 +20,30 @@ with Mandelbrought (in COPYING). If not, see
 #include <cstring>
 #include <cmath>
 #include <gmp.h>
+#include <mpfr.h>
 
 const int bound_size = 2;
 
 class Fractal_image {
 	public:
-		bool (Fractal_image::*bound_check)(mpf_t, mpf_t); 
+		bool (Fractal_image::*bound_check)(mpfr_t, mpfr_t); 
 		int iter, img_width, img_height, **frac_data, calced, bled;
 		bool **have_depth; //, **above_axis; 
-		mpf_t focus_x, focus_y, zoom;
+		mpfr_t focus_x, focus_y, zoom;
 		bool have_fx, have_fy, have_z;
 		FILE *data_file;
 
 		void write_data_to_file(char *);
 
-		bool out_of_diamond(mpf_t, mpf_t);
-		bool out_of_circle(mpf_t, mpf_t);
+		bool out_of_diamond(mpfr_t, mpfr_t);
+		bool out_of_circle(mpfr_t, mpfr_t);
 
 		Fractal_image(char *);
 		~Fractal_image();
 		void load_data(char *);
 
-		void square_z_and_add_c(mpf_t, mpf_t, mpf_t, mpf_t);
-		void init_c_from_specs(mpf_t, int, int, mpf_t);
+		void square_z_and_add_c(mpfr_t, mpfr_t, mpfr_t, mpfr_t);
+		void init_c_from_specs(mpfr_t, int, int, mpfr_t);
 
 		void set_depth(int, int, int);
 		void calc_depth(int, int);

@@ -69,19 +69,19 @@ Fractal_image::Fractal_image(char *in_filename) {
 		return;
 	}
 
-	mpf_set_default_prec(100);
+	mpfr_set_default_prec(100);
 
 	if(!well_read(fscanf(in_file, "Horizontal: %upx\n", &img_width))) return;
 	if(!well_read(fscanf(in_file, "Vertical: %upx\n", &img_height))) return;
 
 	if(!well_read(fscanf(in_file, "X Focus: %s\n", input_buffer))) return;
-	mpf_init_set_str(focus_x, input_buffer, 10);
+	mpfr_init_set_str(focus_x, input_buffer, 10, GMP_RNDN);
 	have_fx = true;
 	if(!well_read(fscanf(in_file, "Y Focus: %s\n", input_buffer))) return;
-	mpf_init_set_str(focus_y, input_buffer, 10);
+	mpfr_init_set_str(focus_y, input_buffer, 10, GMP_RNDN);
 	have_fy = true;
 	if(!well_read(fscanf(in_file, "Zoom: %s\n", input_buffer))) return;
-	mpf_init_set_str(zoom, input_buffer, 10);
+	mpfr_init_set_str(zoom, input_buffer, 10, GMP_RNDN);
 	have_z = true;
 
 	if(!well_read(fscanf(in_file, "Depth: %u\n", &iter))) return;
@@ -90,11 +90,11 @@ Fractal_image::Fractal_image(char *in_filename) {
 
 	// echo the input
 	printf("Image Size: %ux%u \n", img_width, img_height);
-	printf("Zoom: %f \n", mpf_get_d(zoom));
+	printf("Zoom: %f \n", mpfr_get_d(zoom, GMP_RNDN));
 	printf("iterations per pixel: %u \n", iter);
 
 
-	mpf_mul_2exp(zoom, zoom, 1);
+	mpfr_mul_2exp(zoom, zoom, 1, GMP_RNDN);
 
 	frac_data = new int *[img_height];
 	have_depth = new bool *[img_height];
@@ -109,11 +109,11 @@ Fractal_image::Fractal_image(char *in_filename) {
 Fractal_image::~Fractal_image() {
 	fclose(data_file);
 	if(have_fx)
-		mpf_clear(focus_x);
+		mpfr_clear(focus_x);
 	if(have_fy)
-		mpf_clear(focus_y);
+		mpfr_clear(focus_y);
 	if(have_z)
-		mpf_clear(zoom);
+		mpfr_clear(zoom);
 
 	if(frac_data) {
 		for(int y=0; y < img_height; y++)

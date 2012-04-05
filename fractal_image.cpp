@@ -32,14 +32,14 @@ void Fractal_image::set_depth(int x, int y, int depth) {
 }
 
 void Fractal_image::calc_depth(int x, int y) {
-	mpf_t real_c, imaginary_c;
+	mpfr_t real_c, imaginary_c;
 	init_c_from_specs(real_c, x, img_width, focus_x);
 	init_c_from_specs(imaginary_c, y, img_height, focus_y);
 
 	// "planet" means "wanderer"
-	mpf_t real_planet, imaginary_planet;
-	mpf_init_set(real_planet, real_c);
-	mpf_init_set(imaginary_planet, imaginary_c);
+	mpfr_t real_planet, imaginary_planet;
+	mpfr_init_set(real_planet, real_c, GMP_RNDN);
+	mpfr_init_set(imaginary_planet, imaginary_c, GMP_RNDN);
 
 	int i=1;
 	for(; i < iter; i++) {
@@ -61,10 +61,10 @@ void Fractal_image::calc_depth(int x, int y) {
 	}
 	*/
 
-	mpf_clear(real_c);
-	mpf_clear(imaginary_c);
-	mpf_clear(real_planet);
-	mpf_clear(imaginary_planet);
+	mpfr_clear(real_c);
+	mpfr_clear(imaginary_c);
+	mpfr_clear(real_planet);
+	mpfr_clear(imaginary_planet);
 }
 
 bool Fractal_image::in_image(int x, int y) {
