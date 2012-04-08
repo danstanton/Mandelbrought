@@ -12,12 +12,13 @@ About
 Mandelbrought is a Mandelbrot fractal generator.
 
 I used "Mandelbrought" because I had always mispronounced the name as
-Man-del-bro until one of my friends corrected me.
+man-del-bro until one of my friends corrected me.
 
 Dependencies
 ============
 
   libgmp (gmplib.org)
+  libmpfr (mpfr.org)
   libpng (libpng.org)
 
 Building
@@ -43,7 +44,8 @@ How to use Mandelbrought (the first time):
   file that specifies a gradient.
   5. Make a color gradient file, e. g. "blueorange.grad".
   6. Use the output file from step 3 and the color gradient file to
-	create a PNG image like this: "./MBImg frac01 frac01.dat blueorange.grad"
+	create a PNG image like this: "./MBImg frac01 blueorange.grad"
+	 (Do not rename the output from step 3 or this will re-generate it)
   7. You're done! The image should be available as
 	"frac01-blueorange.png"
 

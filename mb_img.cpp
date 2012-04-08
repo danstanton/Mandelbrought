@@ -122,19 +122,26 @@ bool flag_eof( int error, string task) {
 };
 
 int main( int ac, char ** av) {
-	if ( ac < 4 ) {
-		printf("Usage: %s spec_file dat_file color_file\n", av[0]);
+	if ( ac != 3 ) {
+		printf("Usage: %s spec_file color_file\n", av[0]);
 		return 0;
 	}
 
-	string filename;
+	string filename, dat_file;
 
-	for(uint i = 0; i < strlen(av[2])-4; i++)
-		filename.push_back(av[2][i]);
+	/*
+	for(uint i = 0; i < strlen(av[1]); i++) {
+		filename.push_back(av[1][i]);
+		dat_file.push_back(av[1][i]);
+	}*/
+	filename.append(av[1]);
+	dat_file.append(av[1]);
 	filename.push_back('-');
-	for(uint i = 0; i < strlen(av[3])-5; i++)
-		filename.push_back(av[3][i]);
+	for(uint i = 0; i < strlen(av[2])-5; i++)
+		filename.push_back(av[2][i]);
 	filename.append(".png");
+
+	dat_file.append(".dat");
 
 	printf("%s\n",filename.c_str());
 
@@ -149,8 +156,8 @@ int main( int ac, char ** av) {
 	char temp_read[30];
 
 	FILE *spec_file = fopen(av[1], "r"),
-		 *in_file=fopen(av[2], "r"),
-		 *color_file=fopen(av[3], "r"),
+		 *in_file=fopen(dat_file.c_str(), "r"),
+		 *color_file=fopen(av[2], "r"),
 		 *out_file=fopen(filename.c_str(), "wb");
 
 	png_structp png_ptr = NULL;
@@ -163,6 +170,18 @@ int main( int ac, char ** av) {
 	png_bytep pixel;
 
 	bool err_jump = false;
+	if(flag_error(!in_file, "open data file")) {
+		printf("Will generate data automatically\n");
+		fflush(stdout);
+		string command;
+		command.append("./MBDat ");
+		command.append(av[1]);
+
+		int result = system(command.c_str());
+		err_jump = (result != 0);
+		in_file = fopen(dat_file.c_str(), "r");
+	}
+	err_jump |= flag_error(!in_file, "open data file");
 	err_jump |= flag_error(!spec_file, "open specification file");
 	err_jump |= flag_error(!in_file, "open data file");
 	err_jump |= flag_error(!color_file, "open gradient file");
