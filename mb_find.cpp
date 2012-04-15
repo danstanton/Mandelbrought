@@ -21,6 +21,7 @@ with Mandelbrought (in COPYING). If not, see
 #include <cstring>
 #include <gmp.h>
 #include <mpfr.h>
+#include "read_in_file.h"
 
 using namespace std;
 
@@ -42,36 +43,14 @@ int main(int ac, char ** av) {
 
 	mpfr_set_default_prec(100);
 
-	int temp_test;
-
-	// things to get from the file:
-	// img_width
-	// img_height
 	int img_width, img_height, iterates;
-	temp_test = fscanf(in_file, "%ux%u", &img_width, &img_height);
-	if (temp_test == EOF) {
-		printf("Could not read resolution.\n");
-		return 1;
-	}
 
-	// focus_x
-	// focus_y
-	mpfr_t focus_x, focus_y;
+	mpfr_t focus_x, focus_y, zoom;
 	mpfr_init(focus_x);
 	mpfr_init(focus_y);
-	mpfr_inp_str(focus_x, in_file, 10, GMP_RNDN);
-	mpfr_inp_str(focus_y, in_file, 10, GMP_RNDN);
-
-	// zoom
-	mpfr_t zoom;
 	mpfr_init(zoom);
-	mpfr_inp_str(zoom, in_file, 10, GMP_RNDN);
 
-	temp_test = fscanf(in_file, "%u", &iterates);
-	if (temp_test == EOF) {
-		printf("Could not read iterations.\n");
-		return 1;
-	}
+	read_in_file(in_file, img_width, img_height, focus_x, focus_y, zoom, iterates);
 
 	fclose(in_file);
 
@@ -113,14 +92,18 @@ int main(int ac, char ** av) {
 		mpfr_mul_ui(zoom, zoom, z_factor, GMP_RNDN);
 
 	// Print out the new input 
-	printf("%ux%u\n",2*img_width,2*img_height);
+	printf("Horizontal: %upx\n", 2*img_width);
+	printf("Vertical: %upx\n", 2*img_height);
+	printf("X Focus: ");
 	mpfr_out_str(NULL, 10, (size_t)40, focus_x, GMP_RNDN);
 	printf("\n");
+	printf("Y Focus: ");
 	mpfr_out_str(NULL, 10, (size_t)40, focus_y, GMP_RNDN);
 	printf("\n");
+	printf("Zoom: ");
 	mpfr_out_str(NULL, 10, (size_t)40, zoom, GMP_RNDN);
 	printf("\n");
-	printf("%u\n",iterates);
+	printf("Depth: %u\n",iterates);
 
 	mpfr_clear(img_wid);
 	mpfr_clear(img_hei);

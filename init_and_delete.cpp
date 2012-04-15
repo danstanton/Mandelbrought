@@ -16,17 +16,9 @@ with Mandelbrought (in COPYING). If not, see
 <http://www.gnu.org/licenses/>.    */
 
 #include "fractal_image.h"
+#include "read_in_file.h"
 
 using namespace std;
-
-bool well_read(int scanner) {
-	if(scanner == 0 || scanner == EOF) {
-		printf("Read error from input file.\n");
-		return false;
-	} else {
-		return true;
-	}
-};
 
 void Fractal_image::load_data(char *in_data) {
 	if(data_file) 
@@ -68,7 +60,7 @@ Fractal_image::Fractal_image(char *in_filename) {
 	have_z = false;
 	calced = 0;
 	bled = 0;
-	char filename[50], input_buffer[80];
+	char filename[50];
 	FILE *in_file;
 
 
@@ -90,20 +82,10 @@ Fractal_image::Fractal_image(char *in_filename) {
 
 	mpfr_set_default_prec(100);
 
-	if(!well_read(fscanf(in_file, "Horizontal: %upx\n", &img_width))) return;
-	if(!well_read(fscanf(in_file, "Vertical: %upx\n", &img_height))) return;
-
-	if(!well_read(fscanf(in_file, "X Focus: %s\n", input_buffer))) return;
-	mpfr_init_set_str(focus_x, input_buffer, 10, GMP_RNDN);
+	read_in_file(in_file, img_width, img_height, focus_x, focus_y, zoom, iter);
 	have_fx = true;
-	if(!well_read(fscanf(in_file, "Y Focus: %s\n", input_buffer))) return;
-	mpfr_init_set_str(focus_y, input_buffer, 10, GMP_RNDN);
 	have_fy = true;
-	if(!well_read(fscanf(in_file, "Zoom: %s\n", input_buffer))) return;
-	mpfr_init_set_str(zoom, input_buffer, 10, GMP_RNDN);
 	have_z = true;
-
-	if(!well_read(fscanf(in_file, "Depth: %u\n", &iter))) return;
 
 	fclose(in_file);
 
@@ -111,7 +93,6 @@ Fractal_image::Fractal_image(char *in_filename) {
 	printf("Image Size: %ux%u \n", img_width, img_height);
 	printf("Zoom: %f \n", mpfr_get_d(zoom, GMP_RNDN));
 	printf("iterations per pixel: %u \n", iter);
-
 
 	mpfr_mul_2exp(zoom, zoom, 1, GMP_RNDN);
 
