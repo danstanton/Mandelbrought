@@ -40,6 +40,25 @@ void Fractal_image::load_data(char *in_data) {
 	}
 }
 
+void Fractal_image::load_partial_depth(char *in_data) {
+	if(data_file) 
+		fclose(data_file);
+	data_file = fopen(in_data, "r");
+	int x, y, depth;
+	//char *real_s, *imag_s;
+	while(fscanf(data_file, "%u %u %u", &x, &y, &depth) == 3) {
+		if(depth == 0) {
+			// also read prior coordinates
+			// unless the prior coordinates are stored in another file
+			//fscanf(data_file, "%s %s", real_s, imag_s);
+			// don't need to use them...
+		}
+		// don't use set_depth. it would try to write to the data_file
+		frac_data[y][x] = depth;
+		have_depth[y][x] = (depth != 0);
+	}
+}
+
 Fractal_image::Fractal_image(char *in_filename) {
 	bound_check = &Fractal_image::out_of_circle;
 	frac_data = NULL;
@@ -104,6 +123,13 @@ Fractal_image::Fractal_image(char *in_filename) {
 		for(int j=0; j < img_width; j++)
 			have_depth[i][j] = false;
 	}
+}
+
+bool Fractal_image::initialized() {
+	// as you can see above, initializing have_depth is one of the last
+	// steps of the constructor. If it completes, then the object is
+	// initialized.
+	return have_depth != NULL;
 }
 
 Fractal_image::~Fractal_image() {

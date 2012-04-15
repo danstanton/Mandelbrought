@@ -29,6 +29,7 @@ class Fractal_image {
 		bool (Fractal_image::*bound_check)(mpfr_t, mpfr_t); 
 		int iter, img_width, img_height, **frac_data, calced, bled;
 		bool **have_depth; //, **above_axis; 
+		bool **have_coord;
 		mpfr_t focus_x, focus_y, zoom;
 		bool have_fx, have_fy, have_z;
 		FILE *data_file;
@@ -38,9 +39,12 @@ class Fractal_image {
 		bool out_of_diamond(mpfr_t, mpfr_t);
 		bool out_of_circle(mpfr_t, mpfr_t);
 
+		bool initialized();
+
 		Fractal_image(char *);
 		~Fractal_image();
 		void load_data(char *);
+		void load_partial_depth(char *);
 
 		void square_z_and_add_c(mpfr_t, mpfr_t, mpfr_t, mpfr_t);
 		void init_c_from_specs(mpfr_t, int, int, mpfr_t);
@@ -49,18 +53,14 @@ class Fractal_image {
 		void calc_depth(int, int);
 		int get_depth(int, int);
 		void fill_area(int, int);
+		void fill_all();
+		void fill_with_coords(char *);
 		void become_image();
 
 		bool in_image(int, int);
-		void turn_left(int &, int &);
-		void turn_around(int &, int &);
-		void turn_right(int &, int &);
-		void step(int &, int &, int, int);
 
 		bool flat_area(int, int, int); //, bool);
 		void find_and_fill_path(int, int, int, int); 
-		void turn_walker_left(int &, int &, int &, int &, int &, int &);
-		void turn_walker_right(int &, int &, int &, int &, int &, int &);
 
 		void bleed_color(int, int, int); //, bool);
 };

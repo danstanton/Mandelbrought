@@ -16,26 +16,23 @@ with Mandelbrought (in COPYING). If not, see
 <http://www.gnu.org/licenses/>.    */
 
 #include <cstdio>
+#include <cstdlib>
 #include "fractal_image.h"
 
 using namespace std;
 
 int main( int ac, char ** av) {
-	if ( ac < 2 || ac > 3 ) {
-		printf("Usage: %s in_file\n", av[0]);
-		printf("   or: %s in_file in_file.dat\n", av[0]);
+	if ( ac != 4 ) {
+		printf("Usage: %s in_file in_file.dat in_coords.crd new_depth\n", av[0]);
 		return 1;
 	}
 
 	Fractal_image beauty(av[1]);
-	if(!beauty.initialized())
+	if(!beauty.have_depth)
 		return 1;
-
-	if(ac == 3) {
-		beauty.load_data(av[2]);
-	}
-
-	beauty.become_image();
+	beauty.load_partial_depth(av[2]);
+	beauty.iter = atoi(new_depth);
+	beauty.fill_with_coords(av[3]);
 
 	return 0;
 }
