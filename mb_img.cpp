@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <string>
+#include <cstring>
 #include <utility> // for pair
 #include <gmp.h>
 #include <png.h>
