@@ -1,14 +1,38 @@
-Mandelbrought relies on:
+Copyright 2012 Daniel Jacob Stanton
+
+Contact
+=======
+
+You may contact me, D.J. Stanton, with questions or comments at
+geometry180@gmail.com
+
+About
+=====
+
+Mandelbrought is a Mandelbrot fractal generator.
+
+I used "Mandelbrought" because I had always mispronounced the name as
+man-del-bro until one of my friends corrected me.
+
+Dependencies
+============
+
   libgmp (gmplib.org)
+  libmpfr (mpfr.org)
   libpng (libpng.org)
 
-To build Mandelbrought, just use 'make'.
+Building
+========
 
-This creates four executables:
+To build Mandelbrought, just execute 'make' (www.gnu.org/software/make/).
+
+This creates three executables:
   MBDat (produce a data file corresponding to a view area and resolution)
   MBFind (find the numbers for a zoom region based on a previous image)
   MBImg (apply a coloring to a data file to produce a PNG image)
-  MBSeries (produce multiple data files based on a zoom specification)
+
+Use
+===
 
 How to use Mandelbrought (the first time):
   1. Read in_file_spec.txt. This will let you know how to format a
@@ -20,7 +44,86 @@ How to use Mandelbrought (the first time):
   file that specifies a gradient.
   5. Make a color gradient file, e. g. "blueorange.grad".
   6. Use the output file from step 3 and the color gradient file to
-	create a PNG image like this: "./MBImg frac01.dat blueorange.grad"
+	create a PNG image like this: "./MBImg frac01 blueorange.grad"
+	 (Do not rename the output from step 3 or this will re-generate it)
   7. You're done! The image should be available as
 	"frac01-blueorange.png"
 
+Current and Planned Features
+============================
+
+Mandelbrought values precision over speed. To this end, it uses the GNU
+Multiple Precision Arithmetic library. As a result, this generator is
+much slower than others that use the architecture-limited 32 or 64-bit
+number representations. I think the reduced speed is worth the near-
+infinite precision. Currently, this program has no way to represent 
+numbers with more bits of precision than your computer has bits of 
+memory, but I think that's reasonable :)
+
+Mandelbrought currently stores the entire image dataset in memory. For a
+12800x9600 image (wow!), the program uses ~700MB of memory. In the future,
+I may add an option to calculate smaller image tiles that are later
+stitched together, but this is not a priority for me.
+
+Mandelbrought continuously outputs data to a file as it executes. If
+MBDat is interrupted but you wanted it to finish, edit the .dat file
+that was produced and remove the last line if it is incomplete. Every
+line should have three numbers on it. Then, run MBDat again like this:
+
+./MBDat spec_file partial_dat_file
+
+MBDat will read the dat file and use it to continue generation.
+
+I tried to speed up execution by using a path-finding algorithm to
+detect regions of the image that will all be the same color (take the
+same number of iterations to escape). I haven't done a lot of
+benchmarking, but the speedup I saw was underwhelming (in the
+neighborhood of 5%). This is highly dependent on the region of the
+Mandelbrot set being calculated, though, and I expect it helps much more
+when it detects regions that do not escape since determining that
+something does not escape requires calculation of the maximum number
+of iterations specified. 
+  
+The first executable produces an intermediate form of the Mandelbrot set
+that can have any color scheme applied to it later. This is nice, but it
+could be improved by adding a full representation of the final
+coordinates of any coordinates that do not escape. Then, if one wanted
+to increase the number of iterations used to detect escape a later time,
+the entire set would not have to be recalculated. This would let you
+incrementally increase the number of iterations, minimizing the amount
+of calculation that has to be done to get the image you want. I'm now
+using MPFR number representation, so text output and input should be
+straightforward. I understand how to incrementally increase the depth,
+but I'm unsure whether it should be a separate executable or not...
+In fact, maybe I should start combining executables into a menu system.
+
+Other Things To Do
+==================
+
+I would like to make a program that is dedicated to producing zoom
+sequences. To speed up this process, I'd like for it to start at the
+deepest point and zoom out using some form of quadtree to store results.
+I might even have it blend the the values for a particular region
+considering there will eventually be oversampling going on somewhere.
+
+I'd also like to make some external data structure that can be used as a
+lookup table for producing images. I think a quadtree is probably the
+best choice, but I'm not sure how to organize all the data on disk so
+that lookups can be fast. The real application of this would be making
+an interactive zooming view of the set. I do think the quadtree idea is
+interesting, but to be honest, having something like this is not that
+important to me, so I may never get around to it.
+
+I would also like to add another program that provides a better
+interface for choosing new points to zoom in on. Currently, the process
+of zooming consists of:
+
+1. Write an input specification.
+2. Generate an image with MBImg
+3. Find the pixel coordinates for the center of a new image in the GIMP
+4. Input the pixel coordinates to MBFind to get a new input spec.
+5. Repeat as desired
+
+I don't want to have to deal with zooming or scrolling images, though. I
+wonder if there is some program or library that gives the coordinate
+choice interface and returns the result.

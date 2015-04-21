@@ -1,8 +1,9 @@
-<img_width>x<img_height>
-<center_x>
-<center_y>
-<zoom>
-<test_depth>
+Horizontal: <img_width>px
+Vertical: <img_height>px
+X Focus: <center_x>
+Y Focus: <center_y>
+Zoom: <zoom>
+Depth: <test_depth>
 
 --------------------------------
 In the format above:
@@ -18,3 +19,14 @@ In the format above:
     -- the number of pixels that correspond to a distance of 1.0
   <test_depth> is an integer
     -- the number of iterations to apply z = z^(2) + c and test if z escaped
+	-- increase this to show more detail at high zoom levels
+--------------------------------
+An example input file is below this break. 
+	(It's a small image of the entire Mandelbrot set)
+--------------------------------
+Horizontal: 400px
+Vertical: 300px
+X Focus: 0.0e0
+Y Focus: 0.0e0
+Zoom: 1.00e2
+Depth: 1000

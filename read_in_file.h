@@ -16,26 +16,8 @@ with Mandelbrought (in COPYING). If not, see
 <http://www.gnu.org/licenses/>.    */
 
 #include <cstdio>
-#include "fractal_image.h"
+#include <gmp.h>
+#include <mpfr.h>
 
-using namespace std;
-
-int main( int ac, char ** av) {
-	if ( ac < 2 || ac > 3 ) {
-		printf("Usage: %s in_file\n", av[0]);
-		printf("   or: %s in_file in_file.dat\n", av[0]);
-		return 1;
-	}
-
-	Fractal_image beauty(av[1]);
-	if(!beauty.initialized())
-		return 1;
-
-	if(ac == 3) {
-		beauty.load_data(av[2]);
-	}
-
-	beauty.become_image();
-
-	return 0;
-}
+bool well_read(int);
+bool read_in_file(FILE *, int &, int &, mpfr_ptr, mpfr_ptr, mpfr_ptr, int &);
